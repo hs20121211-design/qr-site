@@ -1,12 +1,92 @@
 <!doctype html>
 <html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>QR自動生成</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; margin: 24px; }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    #qrcode { margin-top: 16px; }
+    .meta { color: #555; font-size: 14px; margin-top: 8px; word-break: break-all; }
+    .error { color: #b00020; }
+    button { margin-top: 12px; padding: 8px 12px; }
+    canvas, img { border: 1px solid #ddd; border-radius: 8px; }
+  </style>
+</head>
 <body>
-  <canvas id="c"></canvas>
+  <div class="wrap">
+    <h1>QRコード</h1>
+    <div id="qrcode"></div>
+    <div class="meta" id="info"></div>
+    <button id="download" style="display:none;">PNGでダウンロード</button>
+    <div class="meta error" id="err"></div>
+  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  <!-- QR生成ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
   <script>
-    QRCode.toCanvas(document.getElementById("c"), "Hello", (e)=>console.log(e||"ok"));
+    // クエリ取得
+    const params = new URLSearchParams(location.search);
+
+    // 優先順位: text > url > data（好みで変更OK）
+    const raw =
+      params.get("text") ??
+      params.get("url") ??
+      params.get("data") ??
+      "";
+
+    // サイズ: ?size=256（デフォ256、上限1024）
+    const size = Math.min(Math.max(parseInt(params.get("size") || "256", 10), 64), 1024);
+
+    // 誤り訂正レベル: ?ecc=L|M|Q|H（デフォM）
+    const ecc = (params.get("ecc") || "M").toUpperCase();
+    const eccMap = { L: "L", M: "M", Q: "Q", H: "H" };
+    const level = eccMap[ecc] || "M";
+
+    const qrcodeEl = document.getElementById("qrcode");
+    const infoEl = document.getElementById("info");
+    const errEl = document.getElementById("err");
+    const dlBtn = document.getElementById("download");
+
+    // 簡易バリデーション（必要に応じて強化）
+    if (!raw) {
+      errEl.textContent = "パラメータがありません。例: ?text=Hello  または ?url=https%3A%2F%2Fexample.com";
+      infoEl.textContent = "";
+      throw new Error("no param");
+    }
+    if (raw.length > 2000) {
+      errEl.textContent = "データが長すぎます（上限例: 2000文字）。";
+      throw new Error("too long");
+    }
+
+    // 表示（テキストとして表示するだけ。HTMLとして解釈しない）
+    infoEl.textContent = `内容: ${raw} / size=${size} / ecc=${level}`;
+
+    // QR生成（Canvasに描画）
+    const canvas = document.createElement("canvas");
+    qrcodeEl.innerHTML = "";
+    qrcodeEl.appendChild(canvas);
+
+    QRCode.toCanvas(canvas, raw, {
+      width: size,
+      margin: 2,
+      errorCorrectionLevel: level
+    }, (error) => {
+      if (error) {
+        errEl.textContent = "QR生成に失敗しました: " + error.message;
+        return;
+      }
+      // ダウンロード（PNG）
+      dlBtn.style.display = "inline-block";
+      dlBtn.onclick = () => {
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = "qrcode.png";
+        a.click();
+      };
+    });
   </script>
 </body>
 </html>
