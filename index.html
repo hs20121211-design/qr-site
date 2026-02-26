@@ -4,7 +4,8 @@
 <body>
   <canvas id="c"></canvas>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
   <script>
     QRCode.toCanvas(document.getElementById("c"), "Hello", (e)=>console.log(e||"ok"));
   </script>
