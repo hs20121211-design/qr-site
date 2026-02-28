@@ -13,14 +13,15 @@
       color: #111;
     }
 
+    /* ===== Toolbar ===== */
     .toolbar {
-      max-width: 900px;
+      max-width: 1100px;
       margin: 16px auto;
       padding: 0 16px;
-      display: flex;
-      gap: 8px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
       align-items: center;
-      flex-wrap: wrap;
     }
     .toolbar button {
       border: 1px solid #ccc;
@@ -29,8 +30,45 @@
       padding: 10px 14px;
       cursor: pointer;
       font-size: 14px;
+      white-space: nowrap;
     }
 
+    /* 人物情報（ツールバー内） */
+    .toolbarInfo {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px 16px;
+      align-items: center;
+      padding: 10px 14px;
+      border: 1px solid #e3e6ea;
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 2px 10px rgba(0,0,0,.04);
+      font-size: 13px;
+    }
+    .toolbarInfo .item {
+      display: grid;
+      grid-template-columns: 5.5em 1fr;
+      column-gap: 8px;
+      align-items: baseline;
+      white-space: nowrap;
+    }
+    .toolbarInfo .label {
+      font-weight: 700;
+      color: #333;
+    }
+    .toolbarInfo .value {
+      font-weight: 600;
+      color: #111;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toolbarInfo .empty {
+      color: #777;
+      font-weight: 500;
+    }
+
+    /* ===== Page ===== */
     .page {
       width: 210mm;
       height: 297mm;
@@ -129,7 +167,6 @@
     }
 
     @page { size: A4; margin: 0; }
-
     @media print {
       .no-print { display: none !important; }
       .page {
@@ -142,9 +179,16 @@
 </head>
 
 <body>
-  <!-- 操作ボタン（コピーは削除、印刷のみ） -->
+  <!-- 操作ボタン行（印刷 + 人物情報） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
+
+    <div class="toolbarInfo" id="toolbarInfo">
+      <div class="item"><span class="label">会社名：</span><span class="value" id="tb_k"></span></div>
+      <div class="item"><span class="label">部署：</span><span class="value" id="tb_b"></span></div>
+      <div class="item"><span class="label">役職：</span><span class="value" id="tb_y"></span></div>
+      <div class="item"><span class="label">お名前：</span><span class="value" id="tb_n"></span></div>
+    </div>
   </div>
 
   <section class="page">
@@ -165,7 +209,6 @@
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
 
-      <!-- 右カラムは空 -->
       <div></div>
     </div>
 
@@ -200,12 +243,22 @@
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    const gEl = document.getElementById("gUnderQr");
-    if (g) {
-      gEl.style.display = "block";
-      gEl.textContent = g;
+    // ツールバー表示
+    setTB("tb_k", k);
+    setTB("tb_b", b);
+    setTB("tb_y", y);
+    setTB("tb_n", n);
+    function setTB(id, val) {
+      const el = document.getElementById(id);
+      if (val) el.textContent = val;
+      else { el.textContent = "（未指定）"; el.classList.add("empty"); }
     }
 
+    // g（QR下）
+    const gEl = document.getElementById("gUnderQr");
+    if (g) { gEl.style.display = "block"; gEl.textContent = g; }
+
+    // 枠外情報
     const outsideInfo = document.getElementById("outsideInfo");
     outsideInfo.innerHTML = [
       row("会社名：", k),
@@ -215,9 +268,7 @@
     ].join("");
 
     function row(label, value) {
-      if (value) {
-        return `<div class="row"><div class="label">${label}</div><div class="value">${value}</div></div>`;
-      }
+      if (value) return `<div class="row"><div class="label">${label}</div><div class="value">${value}</div></div>`;
       return `<div class="row"><div class="label">${label}</div><div class="value empty">（未指定）</div></div>`;
     }
 
@@ -227,8 +278,7 @@
       { width: size, margin: 2, errorCorrectionLevel: level }
     );
 
-    document.getElementById("printBtn")
-      .addEventListener("click", () => window.print());
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
   </script>
 </body>
 </html>
