@@ -208,10 +208,10 @@
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ツールバー：／区切り表示
+    // ツールバー表示（指定どおり）
     const v = (s) => s && s.trim() ? s : "（未指定）";
     document.getElementById("toolbarLine").textContent =
-      `${v(k)}／${v(b)}／${v(y)}／${v(n)}`;
+      `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
     // g（QR下）
     const gEl = document.getElementById("gUnderQr");
