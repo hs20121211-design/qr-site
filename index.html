@@ -6,7 +6,7 @@
   <title>QR印刷（A4）</title>
 
   <style>
-    /* ========== 画面表示（標準プレビュー） ========== */
+    /* ========== 画面表示（プレビュー） ========== */
     body {
       margin: 0;
       background: #f2f2f2;
@@ -15,7 +15,7 @@
     }
 
     .toolbar {
-      max-width: 980px;
+      max-width: 900px;
       margin: 16px auto;
       padding: 0 16px;
       display: flex;
@@ -33,20 +33,19 @@
     }
     .toolbar .hint { font-size: 13px; color: #444; }
 
-    /* ★初期表示：標準サイズ（A4固定にしない） */
+    /* A4プレビュー */
     .page {
-      width: min(980px, calc(100% - 32px));
-      height: auto;
+      width: 210mm;
+      height: 297mm;
       margin: 12px auto 24px;
       background: #fff;
       box-shadow: 0 6px 24px rgba(0,0,0,.12);
       border-radius: 10px;
       box-sizing: border-box;
-      padding: 24px;
-
+      padding: 15mm;
       display: grid;
       grid-template-rows: auto 1fr auto;
-      gap: 24px;
+      gap: 10mm;
     }
 
     .title {
@@ -55,7 +54,7 @@
       justify-content: space-between;
       gap: 12px;
       border-bottom: 1px solid #e5e5e5;
-      padding-bottom: 16px;
+      padding-bottom: 6mm;
     }
     .title h1 { font-size: 18pt; margin: 0; }
     .title .meta {
@@ -69,58 +68,67 @@
     .qrArea {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 24px;
+      gap: 12mm;
       align-items: start;
     }
 
-    /* 左側（QR + g(下) + k/b/y/n）を縦に積む */
+    /* 左側（QR枠 + g(下) + k/b/y/n）を縦に積む */
     .qrStack {
       display: grid;
       grid-template-rows: auto auto auto;
-      gap: 18px;
+      gap: 6mm;
       align-items: start;
     }
 
-    /* ★黒枠は消す */
     .qrBox {
       display: flex;
       align-items: center;
       justify-content: center;
-      border: none;           /* ←黒枠削除 */
+
+      /* ★黒枠を消す（変更点） */
+      border: none;
+
+      /* 角丸は残してOK（不要なら0にしてください） */
       border-radius: 12px;
-      padding: 18px;
+
+      padding: 10mm;
       box-sizing: border-box;
+
+      /* 枠がないと浮く場合があるので背景を白で維持 */
       background: #fff;
     }
 
     canvas {
       width: 100%;
       height: auto;
-      max-width: 480px;       /* 標準表示での見た目上限 */
+      max-width: 120mm;
     }
 
-    /* g：QRの下に「値だけ」表示（枠なし・ラベルなし） */
+    /* ★g：QRの下に「値だけ」表示（枠なし・ラベルなし） */
     .gUnderQr {
       text-align: center;
       font-size: 13pt;
       line-height: 1.5;
       font-weight: 800;
       color: #111;
+
       border: none;
       background: transparent;
       box-shadow: none;
+
       padding: 0;
       margin-top: 2mm;
+
       word-break: break-word;
     }
 
-    /* k,b,y,n：QR枠外表示 */
+    /* ★k,b,y,n：QR枠外表示（きれいに） */
     .infoOutside {
       text-align: left;
       font-size: 12pt;
       line-height: 1.75;
       color: #111;
-      padding: 16px 18px;
+      padding: 5mm 6mm;
       border: 1px solid #e3e6ea;
       border-radius: 12px;
       background: #fafbfc;
@@ -132,7 +140,7 @@
       grid-template-columns: 6.5em 1fr;
       column-gap: 10px;
       align-items: baseline;
-      padding: 6px 0;
+      padding: 1.5mm 0;
     }
     .infoOutside .row + .row {
       border-top: 1px dashed #e6e8eb;
@@ -152,10 +160,10 @@
     }
 
     .desc { font-size: 12pt; line-height: 1.55; }
-    .desc .label { font-weight: 700; margin-bottom: 12px; display: block; }
+    .desc .label { font-weight: 700; margin-bottom: 4mm; display: block; }
     .desc code {
       display: block;
-      padding: 16px;
+      padding: 6mm;
       border-radius: 10px;
       background: #f6f7f9;
       border: 1px solid #e3e6ea;
@@ -166,40 +174,12 @@
 
     .footer {
       border-top: 1px solid #e5e5e5;
-      padding-top: 16px;
+      padding-top: 6mm;
       font-size: 10pt;
       color: #444;
       display: flex;
       justify-content: space-between;
       gap: 12px;
-    }
-
-    /* ========== ★A4表示モード（ボタン押下/印刷前に付与） ========== */
-    body.a4mode .page {
-      width: 210mm;
-      height: 297mm;
-      padding: 15mm;
-      gap: 10mm;
-      margin: 12px auto 24px;
-    }
-    body.a4mode .title {
-      padding-bottom: 6mm;
-    }
-    body.a4mode .qrArea {
-      gap: 12mm;
-    }
-    body.a4mode .qrStack {
-      gap: 6mm;
-    }
-    body.a4mode .qrBox {
-      padding: 10mm;
-    }
-    body.a4mode canvas {
-      max-width: 120mm; /* A4時の見た目上限 */
-    }
-    body.a4mode .infoOutside {
-      padding: 5mm 6mm;
-      box-shadow: none;
     }
 
     /* ========== 印刷（A4） ========== */
@@ -217,11 +197,8 @@
         height: 297mm;
         padding: 15mm;
         page-break-after: always;
-        gap: 10mm;
       }
 
-      /* 印刷時の見た目調整（必要なら追加） */
-      canvas { max-width: 130mm; }
       .infoOutside { box-shadow: none; }
     }
   </style>
@@ -232,9 +209,10 @@
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <button id="copyUrlBtn">この設定URLをコピー</button>
-
-    <!-- ★例の行を削除し、ここに k/b/y/n を表示 -->
-    <span class="hint" id="toolbarInfo"></span>
+    <span class="hint">
+      例：
+      <code>?u=https%3A%2F%2Fexample.com&g=受付番号123&k=ABC株式会社&b=営業部&y=主任&n=山田太郎</code>
+    </span>
   </div>
 
   <section class="page" id="page">
@@ -246,13 +224,13 @@
     </div>
 
     <div class="qrArea">
-      <!-- 左：QR + g(下) + k/b/y/n(枠外) -->
+      <!-- 左：QR枠 + g(下) + k/b/y/n(枠外) -->
       <div class="qrStack">
         <div class="qrBox">
           <canvas id="qrCanvas"></canvas>
         </div>
 
-        <!-- ★QRの下：g（値だけ・g:なし） -->
+        <!-- ★QRの下：g（値だけ、枠なし、ラベルなし） -->
         <div class="gUnderQr" id="gUnderQr" style="display:none;"></div>
 
         <!-- ★QR枠外：k,b,y,n -->
@@ -289,7 +267,7 @@
     // =====================
     const params = new URLSearchParams(location.search);
 
-    // k=会社名, b=部署名, y=役職名, n=名前（表示用）
+    // k=会社名, b=部署名, y=役職名, n=名前（枠外表示用）
     const k = params.get("k") ?? "";
     const b = params.get("b") ?? "";
     const y = params.get("y") ?? "";
@@ -309,30 +287,13 @@
       } catch (e) {}
     }
 
-    // =====================
-    // QR設定
-    // =====================
-    // 画面用 size（既存の size パラメータ）
-    const SCREEN_QR_PX = Math.min(Math.max(parseInt(params.get("size") || "720", 10), 256), 1600);
-
-    // 印刷用 printSize（印刷プレビュー時に高精細で作り直す）
-    // 例: ?printSize=1400
-    const PRINT_QR_PX = Math.min(Math.max(parseInt(params.get("printSize") || "1400", 10), 512), 2400);
+    // size=（QRの解像度用）
+    const size = Math.min(Math.max(parseInt(params.get("size") || "720", 10), 256), 1600);
 
     // ecc=L/M/Q/H
     const ecc = (params.get("ecc") || "M").toUpperCase();
     const eccMap = { L: "L", M: "M", Q: "Q", H: "H" };
     const level = eccMap[ecc] || "M";
-
-    // =====================
-    // 表示：ツールバー（k/b/y/n）
-    // =====================
-    const toolbarInfo = document.getElementById("toolbarInfo");
-    toolbarInfo.textContent =
-      `会社名：${k || "（未指定）"} / ` +
-      `部署：${b || "（未指定）"} / ` +
-      `役職：${y || "（未指定）"} / ` +
-      `お名前：${n || "（未指定）"}`;
 
     // =====================
     // QRの中身は u の値だけ
@@ -341,17 +302,16 @@
     document.getElementById("payloadText").textContent = payload;
 
     // メタ表示
-    document.getElementById("metaLine").textContent =
-      `ecc=${level} / screenSize=${SCREEN_QR_PX} / printSize=${PRINT_QR_PX}`;
+    document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
     // =====================
-    // g をQRの下に表示（値だけ・g:なし）
+    // g をQRの下に表示（★ g: を付けない／値だけ表示）
     // =====================
     const gEl = document.getElementById("gUnderQr");
     if (g) {
       gEl.style.display = "block";
-      gEl.textContent = g; // ★'g:' は付けない
+      gEl.textContent = g;   // ★ここで 'g:' を付けない
     } else {
       gEl.style.display = "none";
       gEl.textContent = "";
@@ -386,46 +346,21 @@
     }
 
     // =====================
-    // QR生成（画面用/印刷用で作り分け）
+    // QR生成（canvasへ）
     // =====================
     const canvas = document.getElementById("qrCanvas");
-
-    function renderQr(px) {
-      QRCode.toCanvas(canvas, payload, {
-        width: px,
-        margin: 2,
-        errorCorrectionLevel: level
-      }, (err) => {
-        if (err) console.error(err);
-      });
-    }
-
-    // 初期は画面用
-    renderQr(SCREEN_QR_PX);
-
-    // 印刷前後イベント：印刷プレビューでQRを高精細に
-    window.addEventListener("beforeprint", () => {
-      // Ctrl+PなどでもA4表示に寄せたい場合
-      document.body.classList.add("a4mode");
-      renderQr(PRINT_QR_PX);
-    });
-
-    window.addEventListener("afterprint", () => {
-      // 印刷後は標準表示に戻す（必要なら維持も可）
-      document.body.classList.remove("a4mode");
-      renderQr(SCREEN_QR_PX);
+    QRCode.toCanvas(canvas, payload, {
+      width: size,
+      margin: 2,
+      errorCorrectionLevel: level
+    }, (err) => {
+      if (err) console.error(err);
     });
 
     // =====================
-    // 「A4で印刷」ボタン：
-    // 1) 画面をA4表示モードへ
-    // 2) 印刷ダイアログを開く
+    // 印刷ボタン
     // =====================
-    document.getElementById("printBtn").addEventListener("click", () => {
-      document.body.classList.add("a4mode");
-      // レイアウト反映後に印刷
-      requestAnimationFrame(() => window.print());
-    });
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
 
     // =====================
     // URLコピー（gも含める）
@@ -441,8 +376,7 @@
       setOrDelete("y", y);
       setOrDelete("n", n);
 
-      url.searchParams.set("size", String(SCREEN_QR_PX));
-      url.searchParams.set("printSize", String(PRINT_QR_PX));
+      url.searchParams.set("size", String(size));
       url.searchParams.set("ecc", level);
 
       try {
