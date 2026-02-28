@@ -6,6 +6,7 @@
   <title>QR印刷（A4）</title>
 
   <style>
+    /* ========== 画面表示（プレビュー） ========== */
     body {
       margin: 0;
       background: #f2f2f2;
@@ -35,6 +36,7 @@
       color: #444;
     }
 
+    /* A4の見た目プレビュー（画面上） */
     .page {
       width: 210mm;
       height: 297mm;
@@ -43,7 +45,7 @@
       box-shadow: 0 6px 24px rgba(0,0,0,.12);
       border-radius: 10px;
       box-sizing: border-box;
-      padding: 15mm;
+      padding: 15mm; /* “紙の中の余白” */
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 10mm;
@@ -73,10 +75,10 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12mm;
-      align-items: center;
+      align-items: start;
     }
 
-    /* 左側（QR枠 + 枠外表示）を縦に積む */
+    /* 左側（QR枠 + 枠外情報）を縦に積む */
     .qrStack {
       display: grid;
       grid-template-rows: auto auto;
@@ -96,21 +98,25 @@
     canvas {
       width: 100%;
       height: auto;
-      max-width: 120mm;
+      max-width: 120mm; /* 印刷で大きくし過ぎない */
     }
 
-    /* ★QR枠外に表示する情報 */
+    /* ★QRコード枠外に表示する情報（読みやすい版） */
     .infoOutside {
-      text-align: center;
+      text-align: left;     /* ラベル付きは左揃えが読みやすい */
       font-size: 12pt;
-      line-height: 1.5;
+      line-height: 1.65;    /* 行間を広めに */
       font-weight: 600;
+      color: #111;
+      padding: 0 2mm;       /* QR枠と視覚的に揃える */
       word-break: break-word;
     }
-    .infoOutside .small {
-      font-weight: 500;
-      font-size: 11pt;
-      color: #222;
+    .infoOutside .item {
+      display: block;
+      margin: 0;
+    }
+    .infoOutside .label {
+      font-weight: 700;     /* ラベルを少し強調 */
     }
 
     .desc {
@@ -143,18 +149,26 @@
       gap: 12px;
     }
 
-    @page { size: A4; margin: 0; }
+    /* ========== 印刷（A4） ========== */
+    @page {
+      size: A4;
+      margin: 0; /* ブラウザ既定余白をできるだけ消す */
+    }
 
     @media print {
       body { background: white; }
+
+      /* 印刷時に不要なUIを消す */
       .no-print, .no-print * { display: none !important; }
+
+      /* 影や角丸は印刷で不要なので外す */
       .page {
         margin: 0;
         border-radius: 0;
         box-shadow: none;
         width: 210mm;
         height: 297mm;
-        padding: 15mm;
+        padding: 15mm; /* “紙の中の余白”として維持 */
         page-break-after: always;
       }
     }
@@ -162,15 +176,17 @@
 </head>
 
 <body>
+  <!-- 操作ボタン（印刷時は消える） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <button id="copyUrlBtn">この設定URLをコピー</button>
     <span class="hint">
       例：
-      <code>?k=ABC&b=総務&y=課長&n=山田太郎&u=https%3A%2F%2Fexample.com</code>
+      <code>?k=ABC株式会社&b=営業部&y=主任&n=山田太郎&u=https%3A%2F%2Fexample.com</code>
     </span>
   </div>
 
+  <!-- A4 1枚 -->
   <section class="page" id="page">
     <div class="title">
       <h1>QRコード</h1>
@@ -180,13 +196,13 @@
     </div>
 
     <div class="qrArea">
-      <!-- 左：QR枠 + 枠外（下）に表示する情報 -->
+      <!-- 左：QR枠 + 枠外情報 -->
       <div class="qrStack">
         <div class="qrBox">
           <canvas id="qrCanvas"></canvas>
         </div>
 
-        <!-- ★枠外表示エリア（ここに k/b/y/n を表示） -->
+        <!-- ★枠外表示エリア（会社名/部署/役職/お名前） -->
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
 
@@ -211,6 +227,7 @@
     </div>
   </section>
 
+  <!-- QR生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -244,6 +261,7 @@
     if (n) lines.push(`名前: ${n}`);
     if (u) lines.push(`u: ${u}`);
 
+    // 全部空ならフォールバック（textは使わない）
     const payload = lines.length ? lines.join("\n") : "（パラメータが指定されていません）";
 
     // 右側プレビュー表示（QRの中身）
@@ -253,20 +271,28 @@
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-// =====================
-// ★枠外表示（指定形式）
-// 会社名：kの値、部署：bの値、役職：yの値、お名前：nの値
-// 空の項目は表示しない
-// =====================
-const outsideLines = [];
-if (k) outsideLines.push(`会社名：${k}`);
-if (b) outsideLines.push(`部署：${b}`);
-if (y) outsideLines.push(`役職：${y}`);
-if (n) outsideLines.push(`お名前：${n}`);
+    // =====================
+    // ★枠外表示（指定形式）
+    // 会社名：kの値、部署：bの値、役職：yの値、お名前：nの値
+    // 空の項目は表示しない
+    // =====================
+    const outsideLines = [];
+    if (k) outsideLines.push(`<span class="item"><span class="label">会社名：</span>${escapeHtml(k)}</span>`);
+    if (b) outsideLines.push(`<span class="item"><span class="label">部署：</span>${escapeHtml(b)}</span>`);
+    if (y) outsideLines.push(`<span class="item"><span class="label">役職：</span>${escapeHtml(y)}</span>`);
+    if (n) outsideLines.push(`<span class="item"><span class="label">お名前：</span>${escapeHtml(n)}</span>`);
 
-// HTMLとしては <br> で改行表示（枠外なので見やすい）
-document.getElementById("outsideInfo").innerHTML =
-  outsideLines.length ? outsideLines.join("<br>") : " ";
+    document.getElementById("outsideInfo").innerHTML = outsideLines.length ? outsideLines.join("") : " ";
+
+    // HTMLエスケープ（表示用：安全対策）
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
 
     // =====================
     // QR生成（canvasへ）
@@ -280,14 +306,19 @@ document.getElementById("outsideInfo").innerHTML =
       if (err) console.error(err);
     });
 
-    // 印刷
+    // =====================
+    // 印刷ボタン
+    // =====================
     document.getElementById("printBtn").addEventListener("click", () => {
       window.print();
     });
 
+    // =====================
     // URLコピー（textは扱わない）
+    // =====================
     document.getElementById("copyUrlBtn").addEventListener("click", async () => {
       const url = new URL(location.href);
+
       const setOrDelete = (key, val) => {
         if (val) url.searchParams.set(key, val);
         else url.searchParams.delete(key);
