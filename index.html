@@ -57,7 +57,6 @@
       padding-bottom: 16px;
     }
 
-    /* 左側のみ使用（右カラム削除） */
     .qrArea {
       display: flex;
       justify-content: center;
@@ -74,7 +73,7 @@
       display: flex;
       justify-content: center;
       padding: 18px;
-      border: none; /* 黒枠なし */
+      border: none; /* QR黒枠なし */
     }
 
     canvas {
@@ -150,9 +149,9 @@
 </head>
 
 <body>
+  <!-- 操作バー（コピー機能は削除） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
-    <button id="copyUrlBtn">この設定URLをコピー</button>
     <span class="hint" id="toolbarInfo"></span>
   </div>
 
@@ -168,10 +167,10 @@
           <canvas id="qrCanvas"></canvas>
         </div>
 
-        <!-- g（値のみ表示） -->
+        <!-- g（値のみ） -->
         <div class="gUnderQr" id="gUnderQr"></div>
 
-        <!-- k / b / y / n -->
+        <!-- 会社情報 -->
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
     </div>
@@ -182,7 +181,9 @@
     </div>
   </section>
 
+  <!-- QR生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+
   <script>
     const params = new URLSearchParams(location.search);
 
@@ -194,15 +195,15 @@
     const u = params.get("u") || "";
 
     document.getElementById("toolbarInfo").textContent =
-      `会社名：${k||"未指定"} / 部署：${b||"未指定"} / 役職：${y||"未指定"} / お名前：${n||"未指定"}`;
+      `会社名：${k || "未指定"} / 部署：${b || "未指定"} / 役職：${y || "未指定"} / お名前：${n || "未指定"}`;
 
     document.getElementById("gUnderQr").textContent = g;
 
     document.getElementById("outsideInfo").innerHTML = `
-      <div class="row"><b>会社名：</b>${k||"未指定"}</div>
-      <div class="row"><b>部署：</b>${b||"未指定"}</div>
-      <div class="row"><b>役職：</b>${y||"未指定"}</div>
-      <div class="row"><b>お名前：</b>${n||"未指定"}</div>
+      <div class="row"><b>会社名：</b>${k || "未指定"}</div>
+      <div class="row"><b>部署：</b>${b || "未指定"}</div>
+      <div class="row"><b>役職：</b>${y || "未指定"}</div>
+      <div class="row"><b>お名前：</b>${n || "未指定"}</div>
     `;
 
     const canvas = document.getElementById("qrCanvas");
@@ -215,19 +216,21 @@
         errorCorrectionLevel: "M"
       });
     }
+
     renderQr(screenSize);
 
     window.addEventListener("beforeprint", () => {
-      document.body.classList.add("a4mode","allow-print");
+      document.body.classList.add("a4mode", "allow-print");
       renderQr(printSize);
     });
+
     window.addEventListener("afterprint", () => {
-      document.body.classList.remove("a4mode","allow-print");
+      document.body.classList.remove("a4mode", "allow-print");
       renderQr(screenSize);
     });
 
     document.getElementById("printBtn").onclick = () => {
-      document.body.classList.add("a4mode","allow-print");
+      document.body.classList.add("a4mode", "allow-print");
       window.print();
     };
 
