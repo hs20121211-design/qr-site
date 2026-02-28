@@ -18,10 +18,10 @@
       max-width: 1100px;
       margin: 16px auto;
       padding: 0 16px;
-      display: grid;
-      grid-template-columns: auto 1fr;
+      display: flex;
       gap: 12px;
       align-items: center;
+      flex-wrap: wrap;
     }
     .toolbar button {
       border: 1px solid #ccc;
@@ -32,40 +32,12 @@
       font-size: 14px;
       white-space: nowrap;
     }
-
-    /* 人物情報（ツールバー内） */
-    .toolbarInfo {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px 16px;
-      align-items: center;
-      padding: 10px 14px;
-      border: 1px solid #e3e6ea;
-      border-radius: 12px;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      font-size: 13px;
-    }
-    .toolbarInfo .item {
-      display: grid;
-      grid-template-columns: 5.5em 1fr;
-      column-gap: 8px;
-      align-items: baseline;
-      white-space: nowrap;
-    }
-    .toolbarInfo .label {
-      font-weight: 700;
-      color: #333;
-    }
-    .toolbarInfo .value {
-      font-weight: 600;
+    .toolbarLine {
+      font-size: 14px;
       color: #111;
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-    .toolbarInfo .empty {
-      color: #777;
-      font-weight: 500;
     }
 
     /* ===== Page ===== */
@@ -143,7 +115,6 @@
       border-radius: 12px;
       background: #fafbfc;
     }
-
     .infoOutside .row {
       display: grid;
       grid-template-columns: 6.5em 1fr;
@@ -179,16 +150,10 @@
 </head>
 
 <body>
-  <!-- 操作ボタン行（印刷 + 人物情報） -->
+  <!-- 操作ボタン行（印刷 + ／区切り表示） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
-
-    <div class="toolbarInfo" id="toolbarInfo">
-      <div class="item"><span class="label">会社名：</span><span class="value" id="tb_k"></span></div>
-      <div class="item"><span class="label">部署：</span><span class="value" id="tb_b"></span></div>
-      <div class="item"><span class="label">役職：</span><span class="value" id="tb_y"></span></div>
-      <div class="item"><span class="label">お名前：</span><span class="value" id="tb_n"></span></div>
-    </div>
+    <div class="toolbarLine" id="toolbarLine"></div>
   </div>
 
   <section class="page">
@@ -243,16 +208,10 @@
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ツールバー表示
-    setTB("tb_k", k);
-    setTB("tb_b", b);
-    setTB("tb_y", y);
-    setTB("tb_n", n);
-    function setTB(id, val) {
-      const el = document.getElementById(id);
-      if (val) el.textContent = val;
-      else { el.textContent = "（未指定）"; el.classList.add("empty"); }
-    }
+    // ツールバー：／区切り表示
+    const v = (s) => s && s.trim() ? s : "（未指定）";
+    document.getElementById("toolbarLine").textContent =
+      `${v(k)}／${v(b)}／${v(y)}／${v(n)}`;
 
     // g（QR下）
     const gEl = document.getElementById("gUnderQr");
