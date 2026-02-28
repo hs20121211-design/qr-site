@@ -6,7 +6,6 @@
   <title>QR印刷（A4）</title>
 
   <style>
-    /* ========== 画面表示（プレビュー） ========== */
     body {
       margin: 0;
       background: #f2f2f2;
@@ -33,7 +32,6 @@
     }
     .toolbar .hint { font-size: 13px; color: #444; }
 
-    /* A4プレビュー */
     .page {
       width: 210mm;
       height: 297mm;
@@ -72,7 +70,6 @@
       align-items: start;
     }
 
-    /* 左側（QR枠 + g(下) + k/b/y/n）を縦に積む */
     .qrStack {
       display: grid;
       grid-template-rows: auto auto auto;
@@ -84,17 +81,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-
-      /* ★黒枠を消す（変更点） */
       border: none;
-
-      /* 角丸は残してOK（不要なら0にしてください） */
       border-radius: 12px;
-
       padding: 10mm;
       box-sizing: border-box;
-
-      /* 枠がないと浮く場合があるので背景を白で維持 */
       background: #fff;
     }
 
@@ -104,25 +94,17 @@
       max-width: 120mm;
     }
 
-    /* ★g：QRの下に「値だけ」表示（枠なし・ラベルなし） */
     .gUnderQr {
       text-align: center;
       font-size: 13pt;
       line-height: 1.5;
       font-weight: 800;
       color: #111;
-
-      border: none;
-      background: transparent;
-      box-shadow: none;
-
       padding: 0;
       margin-top: 2mm;
-
       word-break: break-word;
     }
 
-    /* ★k,b,y,n：QR枠外表示（きれいに） */
     .infoOutside {
       text-align: left;
       font-size: 12pt;
@@ -159,19 +141,6 @@
       font-weight: 500;
     }
 
-    .desc { font-size: 12pt; line-height: 1.55; }
-    .desc .label { font-weight: 700; margin-bottom: 4mm; display: block; }
-    .desc code {
-      display: block;
-      padding: 6mm;
-      border-radius: 10px;
-      background: #f6f7f9;
-      border: 1px solid #e3e6ea;
-      word-break: break-all;
-      white-space: pre-wrap;
-      font-size: 10.5pt;
-    }
-
     .footer {
       border-top: 1px solid #e5e5e5;
       padding-top: 6mm;
@@ -182,13 +151,11 @@
       gap: 12px;
     }
 
-    /* ========== 印刷（A4） ========== */
     @page { size: A4; margin: 0; }
 
     @media print {
       body { background: #fff; }
       .no-print, .no-print * { display: none !important; }
-
       .page {
         margin: 0;
         border-radius: 0;
@@ -198,24 +165,18 @@
         padding: 15mm;
         page-break-after: always;
       }
-
       .infoOutside { box-shadow: none; }
     }
   </style>
 </head>
 
 <body>
-  <!-- 操作ボタン（印刷時は消える） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <button id="copyUrlBtn">この設定URLをコピー</button>
-    <span class="hint">
-      例：
-      <code>?u=https%3A%2F%2Fexample.com&g=受付番号123&k=ABC株式会社&b=営業部&y=主任&n=山田太郎</code>
-    </span>
   </div>
 
-  <section class="page" id="page">
+  <section class="page">
     <div class="title">
       <h1>QRコード</h1>
       <div class="meta">
@@ -224,32 +185,17 @@
     </div>
 
     <div class="qrArea">
-      <!-- 左：QR枠 + g(下) + k/b/y/n(枠外) -->
       <div class="qrStack">
         <div class="qrBox">
           <canvas id="qrCanvas"></canvas>
         </div>
 
-        <!-- ★QRの下：g（値だけ、枠なし、ラベルなし） -->
         <div class="gUnderQr" id="gUnderQr" style="display:none;"></div>
-
-        <!-- ★QR枠外：k,b,y,n -->
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
 
-      <!-- 右：QRに入っている文字列のプレビュー（u の値） -->
-      <div class="desc">
-        <span class="label">内容（QR化する文字列）</span>
-        <code id="payloadText"></code>
-
-        <div style="margin-top: 8mm;">
-          <span class="label">読み取り確認のヒント</span>
-          <div>
-            ・QRの読み取りアプリで表示された内容が上の文字列と一致するか確認してください。<br>
-            ・URLなら <b>https://</b> から始まっているか確認してください。
-          </div>
-        </div>
-      </div>
+      <!-- 右カラム（説明文）は削除 -->
+      <div></div>
     </div>
 
     <div class="footer">
@@ -258,28 +204,18 @@
     </div>
   </section>
 
-  <!-- QR生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
-    // =====================
-    // パラメータ取得
-    // =====================
     const params = new URLSearchParams(location.search);
 
-    // k=会社名, b=部署名, y=役職名, n=名前（枠外表示用）
     const k = params.get("k") ?? "";
     const b = params.get("b") ?? "";
     const y = params.get("y") ?? "";
     const n = params.get("n") ?? "";
-
-    // u=QRに入れる値（QRの中身は u のみ）
     const u = params.get("u") ?? "";
 
-    // g（QRの下に表示）
     let g = params.get("g") ?? "";
-
-    // 外側に g が無い場合：u がURLなら、その中のクエリから g を拾う
     if (!g && u) {
       try {
         const inner = new URL(u);
@@ -287,39 +223,19 @@
       } catch (e) {}
     }
 
-    // size=（QRの解像度用）
     const size = Math.min(Math.max(parseInt(params.get("size") || "720", 10), 256), 1600);
-
-    // ecc=L/M/Q/H
     const ecc = (params.get("ecc") || "M").toUpperCase();
-    const eccMap = { L: "L", M: "M", Q: "Q", H: "H" };
-    const level = eccMap[ecc] || "M";
+    const level = { L:"L", M:"M", Q:"Q", H:"H" }[ecc] || "M";
 
-    // =====================
-    // QRの中身は u の値だけ
-    // =====================
-    const payload = u ? u : "（u が指定されていません）";
-    document.getElementById("payloadText").textContent = payload;
-
-    // メタ表示
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // =====================
-    // g をQRの下に表示（★ g: を付けない／値だけ表示）
-    // =====================
     const gEl = document.getElementById("gUnderQr");
     if (g) {
       gEl.style.display = "block";
-      gEl.textContent = g;   // ★ここで 'g:' を付けない
-    } else {
-      gEl.style.display = "none";
-      gEl.textContent = "";
+      gEl.textContent = g;
     }
 
-    // =====================
-    // k,b,y,n を枠外に表示
-    // =====================
     const outsideInfo = document.getElementById("outsideInfo");
     outsideInfo.innerHTML = [
       row("会社名：", k),
@@ -329,63 +245,19 @@
     ].join("");
 
     function row(label, value) {
-      const safeLabel = escapeHtml(label);
       if (value) {
-        return `<div class="row"><div class="label">${safeLabel}</div><div class="value">${escapeHtml(value)}</div></div>`;
+        return `<div class="row"><div class="label">${label}</div><div class="value">${value}</div></div>`;
       }
-      return `<div class="row"><div class="label">${safeLabel}</div><div class="value empty">（未指定）</div></div>`;
+      return `<div class="row"><div class="label">${label}</div><div class="value empty">（未指定）</div></div>`;
     }
 
-    function escapeHtml(str) {
-      return String(str)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-    }
+    QRCode.toCanvas(
+      document.getElementById("qrCanvas"),
+      u || "（u が指定されていません）",
+      { width: size, margin: 2, errorCorrectionLevel: level }
+    );
 
-    // =====================
-    // QR生成（canvasへ）
-    // =====================
-    const canvas = document.getElementById("qrCanvas");
-    QRCode.toCanvas(canvas, payload, {
-      width: size,
-      margin: 2,
-      errorCorrectionLevel: level
-    }, (err) => {
-      if (err) console.error(err);
-    });
-
-    // =====================
-    // 印刷ボタン
-    // =====================
     document.getElementById("printBtn").addEventListener("click", () => window.print());
-
-    // =====================
-    // URLコピー（gも含める）
-    // =====================
-    document.getElementById("copyUrlBtn").addEventListener("click", async () => {
-      const url = new URL(location.href);
-      const setOrDelete = (key, val) => val ? url.searchParams.set(key, val) : url.searchParams.delete(key);
-
-      setOrDelete("u", u);
-      setOrDelete("g", g);
-      setOrDelete("k", k);
-      setOrDelete("b", b);
-      setOrDelete("y", y);
-      setOrDelete("n", n);
-
-      url.searchParams.set("size", String(size));
-      url.searchParams.set("ecc", level);
-
-      try {
-        await navigator.clipboard.writeText(url.toString());
-        alert("URLをコピーしました");
-      } catch (e) {
-        prompt("このURLをコピーしてください", url.toString());
-      }
-    });
   </script>
 </body>
 </html>
