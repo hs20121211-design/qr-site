@@ -20,8 +20,8 @@
       padding: 0 16px;
       display: flex;
       gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
+      align-items: center;        /* ★ 行中央（縦中央） */
+      flex-wrap: nowrap;          /* ★ 1行固定 */
     }
     .toolbar button {
       border: 1px solid #ccc;
@@ -38,6 +38,7 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      align-self: center;         /* ★ 念のため明示 */
     }
 
     /* ===== Page ===== */
@@ -150,7 +151,7 @@
 </head>
 
 <body>
-  <!-- 操作ボタン行（印刷 + ／区切り表示） -->
+  <!-- 操作ボタン行（行中央揃え） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
@@ -173,7 +174,6 @@
         <div class="gUnderQr" id="gUnderQr" style="display:none;"></div>
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
-
       <div></div>
     </div>
 
@@ -208,16 +208,13 @@
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ツールバー表示（指定どおり）
     const v = (s) => s && s.trim() ? s : "（未指定）";
     document.getElementById("toolbarLine").textContent =
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
-    // g（QR下）
     const gEl = document.getElementById("gUnderQr");
     if (g) { gEl.style.display = "block"; gEl.textContent = g; }
 
-    // 枠外情報
     const outsideInfo = document.getElementById("outsideInfo");
     outsideInfo.innerHTML = [
       row("会社名：", k),
