@@ -30,7 +30,6 @@
       cursor: pointer;
       font-size: 14px;
     }
-    .toolbar .hint { font-size: 13px; color: #444; }
 
     .page {
       width: 210mm;
@@ -60,7 +59,6 @@
       font-size: 10.5pt;
       color: #333;
       word-break: break-all;
-      max-width: 60%;
     }
 
     .qrArea {
@@ -74,17 +72,14 @@
       display: grid;
       grid-template-rows: auto auto auto;
       gap: 6mm;
-      align-items: start;
     }
 
     .qrBox {
       display: flex;
       align-items: center;
       justify-content: center;
-      border: none;
       border-radius: 12px;
       padding: 10mm;
-      box-sizing: border-box;
       background: #fff;
     }
 
@@ -97,49 +92,32 @@
     .gUnderQr {
       text-align: center;
       font-size: 13pt;
-      line-height: 1.5;
       font-weight: 800;
-      color: #111;
-      padding: 0;
       margin-top: 2mm;
       word-break: break-word;
     }
 
     .infoOutside {
-      text-align: left;
       font-size: 12pt;
       line-height: 1.75;
-      color: #111;
       padding: 5mm 6mm;
       border: 1px solid #e3e6ea;
       border-radius: 12px;
       background: #fafbfc;
-      box-shadow: 0 2px 10px rgba(0,0,0,.04);
-      word-break: break-word;
     }
+
     .infoOutside .row {
       display: grid;
       grid-template-columns: 6.5em 1fr;
       column-gap: 10px;
-      align-items: baseline;
       padding: 1.5mm 0;
     }
     .infoOutside .row + .row {
       border-top: 1px dashed #e6e8eb;
     }
-    .infoOutside .label {
-      font-weight: 800;
-      color: #222;
-      white-space: nowrap;
-    }
-    .infoOutside .value {
-      font-weight: 600;
-      color: #111;
-    }
-    .infoOutside .empty {
-      color: #777;
-      font-weight: 500;
-    }
+    .infoOutside .label { font-weight: 800; }
+    .infoOutside .value { font-weight: 600; }
+    .infoOutside .empty { color: #777; }
 
     .footer {
       border-top: 1px solid #e5e5e5;
@@ -148,32 +126,25 @@
       color: #444;
       display: flex;
       justify-content: space-between;
-      gap: 12px;
     }
 
     @page { size: A4; margin: 0; }
 
     @media print {
-      body { background: #fff; }
-      .no-print, .no-print * { display: none !important; }
+      .no-print { display: none !important; }
       .page {
         margin: 0;
         border-radius: 0;
         box-shadow: none;
-        width: 210mm;
-        height: 297mm;
-        padding: 15mm;
-        page-break-after: always;
       }
-      .infoOutside { box-shadow: none; }
     }
   </style>
 </head>
 
 <body>
+  <!-- 操作ボタン（印刷のみ） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
-    <button id="copyUrlBtn">この設定URLをコピー</button>
   </div>
 
   <section class="page">
@@ -194,7 +165,7 @@
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
 
-      <!-- 右カラム（説明文）は削除 -->
+      <!-- 右カラムは空 -->
       <div></div>
     </div>
 
@@ -224,8 +195,7 @@
     }
 
     const size = Math.min(Math.max(parseInt(params.get("size") || "720", 10), 256), 1600);
-    const ecc = (params.get("ecc") || "M").toUpperCase();
-    const level = { L:"L", M:"M", Q:"Q", H:"H" }[ecc] || "M";
+    const level = (params.get("ecc") || "M").toUpperCase();
 
     document.getElementById("metaLine").textContent = `ecc=${level} / size=${size}`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
@@ -257,7 +227,8 @@
       { width: size, margin: 2, errorCorrectionLevel: level }
     );
 
-    document.getElementById("printBtn").addEventListener("click", () => window.print());
+    document.getElementById("printBtn")
+      .addEventListener("click", () => window.print());
   </script>
 </body>
 </html>
