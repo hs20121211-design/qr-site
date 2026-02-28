@@ -33,7 +33,7 @@
     }
     .toolbar .hint { font-size: 13px; color: #444; }
 
-    /* A4の見た目プレビュー（画面上） */
+    /* A4プレビュー */
     .page {
       width: 210mm;
       height: 297mm;
@@ -72,7 +72,7 @@
       align-items: start;
     }
 
-    /* 左側（QR枠 + g表示 + 枠外情報）を縦に積む */
+    /* 左側（QR枠 + g(下) + k/b/y/n）を縦に積む */
     .qrStack {
       display: grid;
       grid-template-rows: auto auto auto;
@@ -95,25 +95,25 @@
       max-width: 120mm;
     }
 
-    /* ★gをQRの下に表示（きれいに） */
+    /* ★g：QRの下に「値だけ」表示（枠なし・ラベルなし） */
     .gUnderQr {
       text-align: center;
       font-size: 13pt;
       line-height: 1.5;
       font-weight: 800;
       color: #111;
-      padding: 4mm 6mm;
-      border: 2px solid #111;
-      border-radius: 12px;
-      background: #fff;
+
+      border: none;
+      background: transparent;
+      box-shadow: none;
+
+      padding: 0;
+      margin-top: 2mm;
+
       word-break: break-word;
     }
-    .gUnderQr .label {
-      font-weight: 900;
-      margin-right: 4px;
-    }
 
-    /* ★QRコード枠外に表示する情報（k,b,y,n） */
+    /* ★k,b,y,n：QR枠外表示（きれいに） */
     .infoOutside {
       text-align: left;
       font-size: 12pt;
@@ -128,7 +128,7 @@
     }
     .infoOutside .row {
       display: grid;
-      grid-template-columns: 6.5em 1fr;
+      grid-template-columns: 6.5em 1fr; /* ラベル列固定で縦揃え */
       column-gap: 10px;
       align-items: baseline;
       padding: 1.5mm 0;
@@ -190,7 +190,7 @@
         page-break-after: always;
       }
 
-      /* 印刷時に薄い影を消す */
+      /* 印刷時に影は消す */
       .infoOutside { box-shadow: none; }
     }
   </style>
@@ -222,10 +222,10 @@
           <canvas id="qrCanvas"></canvas>
         </div>
 
-        <!-- ★QRの下：g を表示（空なら非表示にする） -->
+        <!-- ★QRの下：g（値だけ、枠なし、ラベルなし） -->
         <div class="gUnderQr" id="gUnderQr" style="display:none;"></div>
 
-        <!-- ★QR枠外：k,b,y,n を表示 -->
+        <!-- ★QR枠外：k,b,y,n -->
         <div class="infoOutside" id="outsideInfo"></div>
       </div>
 
@@ -250,37 +250,38 @@
     </div>
   </section>
 
+  <!-- QR生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
     // =====================
     // パラメータ取得（textは廃止）
     // =====================
-const params = new URLSearchParams(location.search);
+    const params = new URLSearchParams(location.search);
 
-// 外側（qr-site側）のパラメータ
-const k = params.get("k") ?? "";
-const b = params.get("b") ?? "";
-const y = params.get("y") ?? "";
-const n = params.get("n") ?? "";
+    // k=会社名, b=部署名, y=役職名, n=名前（枠外表示用）
+    const k = params.get("k") ?? "";
+    const b = params.get("b") ?? "";
+    const y = params.get("y") ?? "";
+    const n = params.get("n") ?? "";
 
-// QRの中身は u のみ
-const u = params.get("u") ?? "";
+    // u=QRに入れる値（QRの中身は u のみ）
+    const u = params.get("u") ?? "";
 
-// ★ g はまず外側から取る
-let g = params.get("g") ?? "";
+    // ★ g（QRの下に表示）：まず外側から取得
+    let g = params.get("g") ?? "";
 
-// ★外側に g が無い場合：u がURLなら、その中のクエリから g を拾う
-// （あなたの「u/text の中にパラメータが埋まっている」運用でも対応）
-if (!g && u) {
-  try {
-    // u が URL 文字列の場合
-    const inner = new URL(u);
-    g = inner.searchParams.get("g") ?? "";
-  } catch (e) {
-    // u がURLでない場合は無視
-  }
-}
+    // ★外側に g が無い場合：u がURLなら、その中のクエリから g を拾う
+    // （uの中に g=... が埋まっている運用でも表示できるようにする）
+    if (!g && u) {
+      try {
+        const inner = new URL(u);
+        g = inner.searchParams.get("g") ?? "";
+      } catch (e) {
+        // uがURLでない場合は無視
+      }
+    }
+
     // size=（QRの解像度用）
     const size = Math.min(Math.max(parseInt(params.get("size") || "720", 10), 256), 1600);
 
@@ -300,22 +301,19 @@ if (!g && u) {
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
     // =====================
-    // g をQRの下に表示（空なら非表示）
-    // 表示形式：g：値（※ラベル不要なら label 部分を消してOK）
+    // g をQRの下に表示（枠なし・ラベルなし）
     // =====================
-const gEl = document.getElementById("gUnderQr");
+    const gEl = document.getElementById("gUnderQr");
+    if (g) {
+      gEl.style.display = "block";
+      gEl.textContent = g;   // ★値だけ表示
+    } else {
+      gEl.style.display = "none";
+      gEl.textContent = "";
+    }
 
-// ★g があるときだけ表示
-if (g) {
-  gEl.style.display = "block";
-  // ラベルを「g：」のままで良ければこのまま
-  gEl.innerHTML = `<span class="label">g：</span>${escapeHtml(g)}`;
-} else {
-  gEl.style.display = "none";
-  gEl.innerHTML = "";
-}
     // =====================
-    // 枠外表示（k,b,y,n）指定形式
+    // k,b,y,n を枠外に表示（指定形式）
     // 会社名：kの値 / 部署：bの値 / 役職：yの値 / お名前：nの値
     // 空は（未指定）で表示
     // =====================
