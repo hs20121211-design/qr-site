@@ -223,12 +223,6 @@
     if (g) { gEl.style.display = "block"; gEl.textContent = g; }
 
     const outsideInfo = document.getElementById("outsideInfo");
-    outsideInfo.innerHTML = [
-      row("会社名：", k),
-      row("部署：", b),
-      row("役職：", y),
-      row("お名前：", n),
-    ].join("");
 
     function row(label, value) {
       if (value) return `<div class="row"><div class="label">${label}</div><div class="value">${value}</div></div>`;
