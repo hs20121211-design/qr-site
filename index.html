@@ -18,10 +18,10 @@
       max-width: 1100px;
       margin: 16px auto;
       padding: 0 16px;
+      position: relative;                 /* ★ 中央配置の基準 */
+      height: 44px;                       /* ★ 行の高さを固定 */
       display: flex;
-      gap: 12px;
-      align-items: center;        /* ★ 行中央（縦中央） */
-      flex-wrap: nowrap;          /* ★ 1行固定 */
+      align-items: center;
     }
     .toolbar button {
       border: 1px solid #ccc;
@@ -31,14 +31,19 @@
       cursor: pointer;
       font-size: 14px;
       white-space: nowrap;
+      z-index: 1;                         /* ★ 中央文字より前面 */
     }
     .toolbarLine {
+      position: absolute;                 /* ★ 行の完全中央 */
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       font-size: 14px;
       color: #111;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      align-self: center;         /* ★ 念のため明示 */
+      pointer-events: none;               /* ★ クリック干渉防止 */
     }
 
     /* ===== Page ===== */
@@ -151,7 +156,7 @@
 </head>
 
 <body>
-  <!-- 操作ボタン行（行中央揃え） -->
+  <!-- 操作ボタン行（文字列は行の完全中央） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
