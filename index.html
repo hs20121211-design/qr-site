@@ -62,7 +62,7 @@
       grid-template-rows: auto 1fr auto;
       gap: 24px;
       position: relative; /* 罫線の基準 */
-      overflow: hidden;   /* 念のため */
+      overflow: hidden;
     }
 
     .title {
@@ -71,6 +71,8 @@
       justify-content: space-between;
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
+      position: relative;
+      z-index: 1; /* 罫線より上にしたい場合 */
     }
     .title h1 { font-size: 18pt; margin: 0; }
     .title .meta {
@@ -84,6 +86,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
+      z-index: 1; /* 罫線より上にしたい場合 */
     }
     .qrBox {
       width: min(520px, 90vw);
@@ -92,8 +96,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      position: relative;
-      z-index: 1; /* 罫線より上にしたいなら 1、下にしたいなら 0 */
     }
     canvas {
       width: 100%;
@@ -111,7 +113,7 @@
       justify-content: space-between;
       gap: 12px;
       position: relative;
-      z-index: 1;
+      z-index: 1; /* 罫線より上にしたい場合 */
     }
 
     /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
@@ -121,6 +123,7 @@
       padding: 15mm;
       gap: 10mm;
       border-radius: 0;
+      box-shadow: 0 6px 24px rgba(0,0,0,.12);
     }
     body.a4-preview .title { padding-bottom: 6mm; }
     body.a4-preview .footer { padding-top: 6mm; }
@@ -129,19 +132,24 @@
       padding: 10mm;
     }
 
-    /* ===== ★ 十字罫線（実体要素で描画：印刷でも落ちにくい） ===== */
+    /* ===== ★ 十字罫線（実体要素で描画） =====
+       ※「常に表示」にしてあります（画面でも印刷でも出る）
+       ※QR/文字より上に出したいなら z-index を上げる
+       ※下に出したいなら .title/.qrArea/.footer の z-index を外す
+    */
     .crosshair {
       position: absolute;
       inset: 0;
       pointer-events: none;
-      z-index: 9999; /* QRや文字より上に線を出したい場合 */
+      z-index: 9999;     /* 線を最前面に出す */
+      display: block;    /* 常に表示 */
     }
     .crosshair .v {
       position: absolute;
       top: 0; bottom: 0;
       left: 50%;
       width: 0;
-      border-left: 0.3mm solid rgba(0,0,0,.45); /* 画面用 */
+      border-left: 0.3mm solid rgba(0,0,0,.45);
       transform: translateX(-0.15mm);
     }
     .crosshair .h {
@@ -149,21 +157,18 @@
       left: 0; right: 0;
       top: 50%;
       height: 0;
-      border-top: 0.3mm solid rgba(0,0,0,.45); /* 画面用 */
+      border-top: 0.3mm solid rgba(0,0,0,.45);
       transform: translateY(-0.15mm);
     }
 
-    /* 画面ではA4プレビュー中だけ罫線を見せたい場合（任意） */
-    body:not(.a4-preview) .crosshair { display: none; }
-
     /* ===== 印刷（A4） ===== */
-    @page { size: A4; margin: 0; } /* 用紙設定 */
+    @page { size: A4; margin: 0; }
 
     @media print {
       /* 印刷時：個人情報を含むUIは非表示 */
       .no-print { display: none !important; }
 
-      /* 印刷時：背景/罫線などの色省略を抑制（Chrome系対策） */
+      /* 印刷時：背景/罫線などの省略を抑制（ただしブラウザ設定が優先される場合あり） */
       body {
         background: #fff;
         -webkit-print-color-adjust: exact;
@@ -185,10 +190,8 @@
         padding: 10mm;
       }
 
-      /* 印刷では常に罫線を表示 */
-      .crosshair { display: block !important; }
+      /* 印刷では線を濃く */
       .crosshair .v, .crosshair .h {
-        /* 印刷は濃く */
         border-color: #000;
       }
     }
@@ -226,7 +229,7 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ -->
+  <!-- ✅ QRコード生成ライブラリ（scriptタグ 修正済み） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -296,7 +299,6 @@
       renderQr();
     }
 
-    // 印刷/プレビュー終了後に元へ戻す
     window.addEventListener("afterprint", () => {
       disableA4Preview();
     });
