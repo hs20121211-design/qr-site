@@ -43,9 +43,9 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットでは印刷ボタン非表示 */
+    /* スマホ・タブレットではツールバー自体を非表示 */
     @media (pointer: coarse) {
-      #printBtn {
+      .toolbar {
         display: none !important;
       }
     }
@@ -82,16 +82,9 @@
     }
 
     .qrArea {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12mm;
-      align-items: start;
-    }
-
-    .qrStack {
-      display: grid;
-      grid-template-rows: auto auto auto;
-      gap: 6mm;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     .qrBox {
@@ -106,34 +99,6 @@
       height: auto;
     }
 
-    .gUnderQr {
-      text-align: center;
-      font-size: 13pt;
-      font-weight: 800;
-      margin-top: 2mm;
-      word-break: break-word;
-    }
-
-    .infoOutside {
-      font-size: 12pt;
-      line-height: 1.75;
-      padding: 5mm 6mm;
-      border: 1px solid #e3e6ea;
-      border-radius: 12px;
-      background: #fafbfc;
-    }
-    .infoOutside .row {
-      display: grid;
-      grid-template-columns: 6.5em 1fr;
-      padding: 1.5mm 0;
-    }
-    .infoOutside .row + .row {
-      border-top: 1px dashed #e6e8eb;
-    }
-    .infoOutside .label { font-weight: 800; }
-    .infoOutside .value { font-weight: 600; }
-    .infoOutside .empty { color: #777; }
-
     .footer {
       border-top: 1px solid #e5e5e5;
       padding-top: 6mm;
@@ -144,6 +109,8 @@
     }
 
     @page { size: A4; margin: 0; }
+
+    /* 印刷時は個人情報を含むUIを完全非表示 */
     @media print {
       .no-print { display: none !important; }
       .page {
@@ -156,7 +123,7 @@
 </head>
 
 <body>
-  <!-- ツールバー -->
+  <!-- ツールバー（PCのみ表示・印刷時非表示） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
@@ -169,14 +136,9 @@
     </div>
 
     <div class="qrArea">
-      <div class="qrStack">
-        <div class="qrBox">
-          <canvas id="qrCanvas"></canvas>
-        </div>
-        <div class="gUnderQr" id="gUnderQr" style="display:none;"></div>
-        <div class="infoOutside" id="outsideInfo"></div>
+      <div class="qrBox">
+        <canvas id="qrCanvas"></canvas>
       </div>
-      <div></div>
     </div>
 
     <div class="footer">
@@ -199,20 +161,12 @@
 
     const v = (s) => s && s.trim() ? s : "（未指定）";
 
-    // ツールバー中央表示
+    // ツールバー中央（画面表示のみ）
     document.getElementById("toolbarLine").textContent =
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
     document.getElementById("metaLine").textContent = "ecc=M / size=720";
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
-
-    // 枠外情報
-    document.getElementById("outsideInfo").innerHTML = `
-      <div class="row"><div class="label">会社名：</div><div class="value">${v(k)}</div></div>
-      <div class="row"><div class="label">部署：</div><div class="value">${v(b)}</div></div>
-      <div class="row"><div class="label">役職：</div><div class="value">${v(y)}</div></div>
-      <div class="row"><div class="label">お名前：</div><div class="value">${v(n)}</div></div>
-    `;
 
     // QR生成（uのみ）
     QRCode.toCanvas(
@@ -224,7 +178,7 @@
     document.getElementById("printBtn")
       .addEventListener("click", () => window.print());
 
-    // URL引数を非表示
+    // URL引数を非表示（履歴を汚さない）
     if (location.search) {
       history.replaceState(null, document.title, location.pathname);
     }
