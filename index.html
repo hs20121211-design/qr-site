@@ -13,7 +13,7 @@
       color:#111;
     }
 
-    /* ===== Toolbar（上部：個人情報はここだけ） ===== */
+    /* ===== Toolbar（画面のみ：個人情報はここだけ） ===== */
     .toolbar{
       max-width:1100px;
       margin:16px auto;
@@ -48,49 +48,43 @@
       .toolbar{ display:none !important; }
     }
 
-    /* ===== Page：初期表示はA4固定にしない（レスポンシブ） ===== */
+    /* ===== 画面表示（最初はA4固定にしない） ===== */
     .page{
       width:min(1100px,96vw);
-      height:auto;
       margin:12px auto 24px;
       background:#fff;
       box-shadow:0 6px 24px rgba(0,0,0,.12);
       border-radius:10px;
       box-sizing:border-box;
-      padding:24px; /* 画面用 */
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-      gap:24px;
-      position:relative;
+      padding:24px;
     }
-
-    .title{
+    .screenHint{
       display:flex;
-      align-items:baseline;
       justify-content:space-between;
+      gap:12px;
+      align-items:baseline;
       border-bottom:1px solid #e5e5e5;
-      padding-bottom:16px;
+      padding-bottom:12px;
+      margin-bottom:18px;
     }
-    .title h1{ font-size:18pt; margin:0; }
-    .title .meta{
+    .screenHint h1{ font-size:18pt; margin:0; }
+    .screenHint .meta{
       font-size:10.5pt;
       color:#333;
       word-break:break-all;
+      text-align:right;
     }
 
-    /* ===== QR：画面サイズに追従 ===== */
-    .qrArea{
+    /* 画面用のQR（プレビュー） */
+    .screenQrWrap{
       display:flex;
       justify-content:center;
-      align-items:center;
+      padding:18px 0 6px;
     }
-    .qrBox{
+    .screenQrBox{
       width:min(520px,90vw);
       padding:12px;
       box-sizing:border-box;
-      display:flex;
-      justify-content:center;
-      align-items:center;
     }
     canvas{
       width:100%;
@@ -98,10 +92,10 @@
       display:block;
     }
 
-    /* フッター（個人情報は出さない） */
     .footer{
       border-top:1px solid #e5e5e5;
-      padding-top:16px;
+      padding-top:12px;
+      margin-top:18px;
       font-size:10pt;
       color:#444;
       display:flex;
@@ -109,62 +103,83 @@
       gap:12px;
     }
 
-    /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
-    body.a4-preview .page{
-      width:210mm;
-      height:297mm;
-      padding:15mm;
-      gap:10mm;
-    }
-    body.a4-preview .title{ padding-bottom:6mm; }
-    body.a4-preview .footer{ padding-top:6mm; }
-    body.a4-preview .qrBox{
-      width:120mm;
-      padding:10mm;
-    }
-
     /* ===== 印刷（A4） ===== */
     @page{ size:A4; margin:0; }
 
     @media print{
-      /* 印刷時：個人情報を含むUIを非表示 */
+      /* 印刷時：個人情報を含むUIは非表示 */
       .no-print{ display:none !important; }
 
-      /* 印刷時はA4固定 */
+      /* 印刷時はA4固定（ページ全面を使う） */
       body{ background:#fff; }
       .page{
         width:210mm;
         height:297mm;
         margin:0;
-        border-radius:0;
+        padding:0;
         box-shadow:none;
-        padding:15mm;
-        gap:10mm;
-        position:relative;
+        border-radius:0;
 
-        /* ★ 縦横中央の罫線（4マス）：linear-gradientで確実に表示 */
+        /* ★折り目線（薄い点線）：縦横中央 */
+        --fold-color: rgba(0,0,0,0.22); /* 線の薄さ */
+        --dot-gap: 2.2mm;               /* 点の間隔 */
+        --dot-len: 0.6mm;               /* 点の長さ */
+        --line-thick: 0.25mm;           /* 線の太さ */
+
         background:
-          linear-gradient(
-            to right,
-            transparent calc(50% - 0.15mm),
-            #000        calc(50% - 0.15mm),
-            #000        calc(50% + 0.15mm),
-            transparent calc(50% + 0.15mm)
-          ),
-          linear-gradient(
+          /* 縦の点線（中央） */
+          repeating-linear-gradient(
             to bottom,
-            transparent calc(50% - 0.15mm),
-            #000        calc(50% - 0.15mm),
-            #000        calc(50% + 0.15mm),
-            transparent calc(50% + 0.15mm)
+            transparent 0,
+            transparent var(--dot-gap),
+            var(--fold-color) var(--dot-gap),
+            var(--fold-color) calc(var(--dot-gap) + var(--dot-len))
+          ),
+          /* 横の点線（中央） */
+          repeating-linear-gradient(
+            to right,
+            transparent 0,
+            transparent var(--dot-gap),
+            var(--fold-color) var(--dot-gap),
+            var(--fold-color) calc(var(--dot-gap) + var(--dot-len))
           );
-        background-repeat:no-repeat;
-        background-size:100% 100%, 100% 100%;
+
+        /* 線は中央にだけ置く（全体に敷き詰めない） */
+        background-position: 50% 0, 0 50%;
+        background-size: var(--line-thick) 100%, 100% var(--line-thick);
+        background-repeat: no-repeat;
       }
 
-      .qrBox{
-        width:120mm;
-        padding:10mm;
+      /* 画面用の要素は印刷で出さない */
+      .screenHint, .screenQrWrap, .footer{ display:none !important; }
+
+      /* ★ A4全面を2×2で4マス */
+      .qrGrid{
+        display:grid !important;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        width:210mm;
+        height:297mm;
+      }
+      .cell{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        box-sizing:border-box;
+        padding:12mm; /* マス内の余白（好みで調整） */
+      }
+
+      /* QRは上2マスだけ表示 */
+      .cell.bottom{ /* 下段は空 */
+        justify-content:center;
+        align-items:center;
+      }
+
+      /* キャンバスはセル内にフィット */
+      .cell canvas{
+        width:100%;
+        max-width:85mm; /* 上段のQRの最大サイズ */
+        height:auto;
       }
     }
   </style>
@@ -178,20 +193,33 @@
   </div>
 
   <section class="page" id="page">
-    <div class="title">
+    <!-- 画面用（最初の表示：A4固定にしない） -->
+    <div class="screenHint">
       <h1>QRコード</h1>
       <div class="meta" id="metaLine"></div>
     </div>
 
-    <div class="qrArea">
-      <div class="qrBox" id="qrBox">
-        <canvas id="qrCanvas"></canvas>
+    <div class="screenQrWrap">
+      <div class="screenQrBox" id="screenQrBox">
+        <canvas id="qrCanvasScreen"></canvas>
       </div>
     </div>
 
     <div class="footer">
       <div>Generated by GitHub Pages</div>
       <div id="footerInfo"></div>
+    </div>
+
+    <!-- 印刷用（2×2、上2マスにQR） -->
+    <div class="qrGrid" id="qrGrid" style="display:none;">
+      <div class="cell top">
+        <canvas id="qrCanvasTL"></canvas>
+      </div>
+      <div class="cell top">
+        <canvas id="qrCanvasTR"></canvas>
+      </div>
+      <div class="cell bottom"></div>
+      <div class="cell bottom"></div>
     </div>
   </section>
 
@@ -222,60 +250,80 @@
     document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ===== QRを表示サイズに合わせて再描画 =====
-    const canvas = document.getElementById("qrCanvas");
-    const box = document.getElementById("qrBox");
+    // ===== QR描画（画面用＋印刷用 上2つ） =====
+    const screenBox = document.getElementById("screenQrBox");
+    const cScreen = document.getElementById("qrCanvasScreen");
+    const cTL = document.getElementById("qrCanvasTL");
+    const cTR = document.getElementById("qrCanvasTR");
 
-    function computeQrWidthPx() {
-      const w = Math.floor(box.getBoundingClientRect().width);
-      const clamped = Math.max(160, Math.min(w, 1100));
-      return clamped - (clamped % 2);
-    }
-
-    function renderQr() {
-      const width = computeQrWidthPx();
+    function drawTo(canvas, widthPx){
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
-        { width, margin: 2, errorCorrectionLevel: ecc },
+        { width: widthPx, margin: 2, errorCorrectionLevel: ecc },
         (err) => { if (err) console.error(err); }
       );
     }
 
-    // リサイズ時は間引き
-    let t = 0;
-    function scheduleRender() {
-      clearTimeout(t);
-      t = setTimeout(renderQr, 120);
+    function even(n){ return n - (n % 2); }
+
+    function renderAllQrs(){
+      // 画面：表示領域に合わせる
+      const wScreen = Math.floor(screenBox.getBoundingClientRect().width);
+      const pxScreen = even(Math.max(160, Math.min(wScreen, 900)));
+      drawTo(cScreen, pxScreen);
+
+      // 印刷：セル内の実寸に合わせる（プレビュー時にも効く）
+      const tlCell = cTL.parentElement;
+      const trCell = cTR.parentElement;
+      const wTL = tlCell ? Math.floor(tlCell.getBoundingClientRect().width) : 600;
+      const wTR = trCell ? Math.floor(trCell.getBoundingClientRect().width) : 600;
+
+      // 少し余白分を引いて安全に
+      const pxTL = even(Math.max(200, Math.min(wTL - 24, 900)));
+      const pxTR = even(Math.max(200, Math.min(wTR - 24, 900)));
+
+      drawTo(cTL, pxTL);
+      drawTo(cTR, pxTR);
     }
-    window.addEventListener("resize", scheduleRender);
 
     // 初回描画
-    renderQr();
+    renderAllQrs();
 
-    // ===== 「A4で印刷」クリック時だけA4表示 → 印刷 → 戻す =====
-    const printBtn = document.getElementById("printBtn");
-
-    function enableA4Preview() {
-      document.body.classList.add("a4-preview");
-      renderQr();
-    }
-    function disableA4Preview() {
-      document.body.classList.remove("a4-preview");
-      renderQr();
-    }
-
-    // 印刷プレビューを閉じたら元に戻す
-    window.addEventListener("afterprint", () => disableA4Preview());
-
-    // ボタン押下でA4表示にしてから印刷
-    printBtn.addEventListener("click", () => {
-      enableA4Preview();
-      window.print();
+    // リサイズは間引き
+    let t = 0;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(renderAllQrs, 120);
     });
 
-    // Ctrl+Pなどで印刷された場合もA4に寄せる（任意だが安全）
-    window.addEventListener("beforeprint", () => enableA4Preview());
+    // ===== 「A4で印刷」クリック時：印刷用グリッドを表示してから印刷 =====
+    const printBtn = document.getElementById("printBtn");
+    const qrGrid = document.getElementById("qrGrid");
+
+    function enablePrintLayout(){
+      // 印刷用グリッドを表示（画面上では見えなくても、印刷に反映される）
+      qrGrid.style.display = "grid";
+      // 再描画（印刷用セルのサイズが取れるように）
+      renderAllQrs();
+    }
+    function disablePrintLayout(){
+      // 印刷が終わったら非表示に戻す（画面はシンプル）
+      qrGrid.style.display = "none";
+      renderAllQrs();
+    }
+
+    window.addEventListener("beforeprint", () => {
+      enablePrintLayout();
+    });
+    window.addEventListener("afterprint", () => {
+      disablePrintLayout();
+    });
+
+    printBtn.addEventListener("click", () => {
+      enablePrintLayout();
+      window.print();
+    });
 
     // URL引数を非表示（履歴を汚さない）
     if (location.search) {
