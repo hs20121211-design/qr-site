@@ -80,21 +80,26 @@
       word-break: break-all;
     }
 
-    /* 中央にQRのみ */
+    /* ===== QR領域：画面サイズに追従 ===== */
     .qrArea {
       display: flex;
       justify-content: center;
       align-items: center;
     }
     .qrBox {
+      /* 画面が狭い時は縮む。広い時でも大きくしすぎない */
+      width: min(520px, 90vw);
+      max-width: 120mm; /* 印刷レイアウトを壊しにくい上限 */
+      padding: 10mm;
+      box-sizing: border-box;
       display: flex;
       justify-content: center;
-      padding: 10mm;
     }
+
     canvas {
-      max-width: 120mm;
       width: 100%;
       height: auto;
+      display: block;
     }
 
     /* フッター（個人情報は一切出さない） */
@@ -118,6 +123,12 @@
         border-radius: 0;
         box-shadow: none;
       }
+
+      /* 印刷ではA4前提のサイズに固定したい場合（任意） */
+      .qrBox {
+        width: 120mm;
+        max-width: 120mm;
+      }
     }
   </style>
 </head>
@@ -136,7 +147,7 @@
     </div>
 
     <div class="qrArea">
-      <div class="qrBox">
+      <div class="qrBox" id="qrBox">
         <canvas id="qrCanvas"></canvas>
       </div>
     </div>
@@ -147,7 +158,7 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ（正しいscriptタグ） -->
+  <!-- QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -160,7 +171,7 @@
     const n = params.get("n") ?? "";
 
     // QRの中身（uのみ）
-    const u = params.get("u") ?? "";
+    const payload = params.get("u") ?? "";
 
     // （表示用）未指定時の置換
     const v = (s) => (s && s.trim()) ? s : "（未指定）";
@@ -170,20 +181,50 @@
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
     // メタ・フッター（個人情報は入れない）
-    document.getElementById("metaLine").textContent = "ecc=M / size=720";
+    const ecc = "M";
+    document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // QR生成（uのみ）
-    QRCode.toCanvas(
-      document.getElementById("qrCanvas"),
-      u || "（u が指定されていません）",
-      { width: 720, margin: 2, errorCorrectionLevel: "M" }
-    );
+    // ===== QRを表示サイズに合わせて再描画 =====
+    const canvas = document.getElementById("qrCanvas");
+    const box = document.getElementById("qrBox");
+
+    function computeQrWidthPx() {
+      // 表示領域の実幅を取得し、読み取りしやすい偶数に丸め
+      const w = Math.floor(box.getBoundingClientRect().width);
+      // 小さすぎると読みにくいので下限を設定（必要なら調整）
+      const clamped = Math.max(160, Math.min(w, 900));
+      return clamped - (clamped % 2);
+    }
+
+    function renderQr() {
+      const width = computeQrWidthPx();
+      QRCode.toCanvas(
+        canvas,
+        payload || "（u が指定されていません）",
+        { width, margin: 2, errorCorrectionLevel: ecc },
+        (err) => { if (err) console.error(err); }
+      );
+    }
+
+    // リサイズは間引く
+    let t = 0;
+    function scheduleRender() {
+      clearTimeout(t);
+      t = setTimeout(renderQr, 120);
+    }
+
+    // 初回描画
+    renderQr();
+
+    // 画面サイズ変更に追従
+    window.addEventListener("resize", scheduleRender);
 
     // 印刷
     document.getElementById("printBtn").addEventListener("click", () => window.print());
 
-    // URL引数を非表示（アドレスバーから消す：表示後に履歴を汚さない）
+    // URL引数を非表示（表示後に履歴を汚さない）
+    // replaceState は現在の履歴エントリのURLを置き換えます。oper.mozilla.org/en-US/docs/Web/API/History/replaceState)
     if (location.search) {
       history.replaceState(null, document.title, location.pathname);
     }
