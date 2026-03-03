@@ -57,10 +57,10 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
-      position: relative;
+      position: relative; /* ← 罫線用に必須 */
     }
 
-    /* ===== Title row ===== */
+    /* ===== Title ===== */
     .title {
       display: flex;
       align-items: baseline;
@@ -80,7 +80,7 @@
       font-size: 10.5pt;
       color: #333;
       line-height: 1.5;
-      text-align: center;   /* ←★ 左右中央 */
+      text-align: center;
     }
 
     /* 通常画面（PC） */
@@ -88,7 +88,7 @@
       content: "ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。";
     }
 
-    /* 通常画面（スマホ・タブレット） */
+    /* 通常画面（スマホ／タブレット） */
     @media (pointer: coarse) {
       .guideText::before {
         content: "ご来場の際は、この画面のQRコードを受付にご提示ください。";
@@ -107,7 +107,6 @@
       }
     }
 
-    /* 右端メタ */
     .title .meta {
       margin-left: auto;
       font-size: 10.5pt;
@@ -151,10 +150,33 @@
     body.a4-preview .qrArea--one { display: none; }
     body.a4-preview .qrArea--two { display: grid; }
 
+    /* ===== ✅ A4プレビュー用 十字罫線 ===== */
+    body.a4-preview .page::before,
+    body.a4-preview .page::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    body.a4-preview .page::before {
+      top: 0; bottom: 0;
+      left: 50%;
+      transform: translateX(-0.15mm);
+      border-left: 0.3mm solid rgba(0,0,0,.20);
+    }
+    body.a4-preview .page::after {
+      left: 0; right: 0;
+      top: 50%;
+      transform: translateY(-0.15mm);
+      border-top: 0.3mm solid rgba(0,0,0,.20);
+    }
+
     /* ===== 印刷 ===== */
     @page { size: A4; margin: 0; }
+
     @media print {
       .no-print { display: none !important; }
+
       .page {
         width: 210mm;
         height: 297mm;
@@ -165,6 +187,27 @@
       }
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
+
+      /* ✅ 印刷用 十字罫線 */
+      .page::before,
+      .page::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999;
+      }
+      .page::before {
+        top: 0; bottom: 0;
+        left: 50%;
+        transform: translateX(-0.15mm);
+        border-left: 0.3mm solid rgba(0,0,0,.25);
+      }
+      .page::after {
+        left: 0; right: 0;
+        top: 50%;
+        transform: translateY(-0.15mm);
+        border-top: 0.3mm solid rgba(0,0,0,.25);
+      }
     }
   </style>
 </head>
@@ -203,7 +246,6 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
