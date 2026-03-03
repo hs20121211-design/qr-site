@@ -102,7 +102,7 @@
       .notice .msg--mobile { display: inline; }
     }
 
-    /* A4プレビュー（画面）：プレビュー文言を表示 */
+    /* ✅ 印刷プレビュー（A4プレビュー：画面）時だけプレビュー文言を表示 */
     body.a4-preview .notice .msg--pc { display: none; }
     body.a4-preview .notice .msg--mobile { display: none; }
     body.a4-preview .notice .msg--preview { display: inline; }
@@ -302,13 +302,13 @@
       <!-- ✅ 右側：案内文 + meta -->
       <div class="titleRight">
         <div class="notice" aria-live="polite">
-          <!-- PC初期表示 -->
+          <!-- PC初期表示（そのまま） -->
           <span class="msg msg--pc">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。</span>
-          <!-- スマホ/タブレット初期表示 -->
+          <!-- スマホ/タブレット初期表示（そのまま） -->
           <span class="msg msg--mobile">ご来場の際は、この画面のQRコードを受付にご提示ください。</span>
-          <!-- A4プレビュー（画面）表示 -->
+          <!-- ✅ 印刷プレビュー（画面）表示：ここだけ指定文言 -->
           <span class="msg msg--preview">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。</span>
-          <!-- 印刷時に印字する文言 -->
+          <!-- 印刷時に印字する文言（そのまま） -->
           <span class="msg msg--print">ご来場の際は、このQRコードを受付にご提示ください。</span>
         </div>
 
@@ -339,7 +339,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ -->
+  <!-- ✅ QRコード生成ライブラリ（正しいscriptタグ） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
