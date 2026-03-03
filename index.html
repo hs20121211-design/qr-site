@@ -6,165 +6,191 @@
   <title>QR印刷（A4）</title>
 
   <style>
-    body{
-      margin:0;
-      background:#f2f2f2;
-      font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-      color:#111;
+    body {
+      margin: 0;
+      background: #f2f2f2;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: #111;
     }
 
     /* ===== Toolbar（上部：個人情報はここだけ） ===== */
-    .toolbar{
-      max-width:1100px;
-      margin:16px auto;
-      padding:0 16px;
-      position:relative;
-      height:44px;
-      display:flex;
-      align-items:center;
+    .toolbar {
+      max-width: 1100px;
+      margin: 16px auto;
+      padding: 0 16px;
+      position: relative;
+      height: 44px;
+      display: flex;
+      align-items: center;
     }
-    .toolbar button{
-      border:1px solid #ccc;
-      background:#fff;
-      border-radius:10px;
-      padding:10px 14px;
-      cursor:pointer;
-      font-size:14px;
-      white-space:nowrap;
-      z-index:1;
+    .toolbar button {
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      white-space: nowrap;
+      z-index: 1;
     }
-    .toolbarLine{
-      position:absolute;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      font-size:14px;
-      white-space:nowrap;
-      pointer-events:none;
+    .toolbarLine {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      white-space: nowrap;
+      pointer-events: none;
     }
 
-    /* スマホ・タブレットではツールバー自体を非表示 */
-    @media (pointer:coarse){
-      .toolbar{ display:none !important; }
+    /* スマホ・タブレットではツールバー自体を非表示（＝個人情報も出ない） */
+    @media (pointer: coarse) {
+      .toolbar { display: none !important; }
     }
 
     /* ===== Page：初期表示はA4固定にしない（レスポンシブ） ===== */
-    .page{
-      width:min(1100px,96vw);
-      height:auto;
-      margin:12px auto 24px;
-      background:#fff;
-      box-shadow:0 6px 24px rgba(0,0,0,.12);
-      border-radius:10px;
-      box-sizing:border-box;
-      padding:24px; /* 画面用 */
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-      gap:24px;
-      position:relative;
+    .page {
+      width: min(1100px, 96vw);
+      height: auto;
+      margin: 12px auto 24px;
+      background: #fff;
+      box-shadow: 0 6px 24px rgba(0,0,0,.12);
+      border-radius: 10px;
+      box-sizing: border-box;
+      padding: 24px; /* 画面用 */
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 24px;
+      position: relative; /* 罫線の重ね描き用 */
     }
 
-    .title{
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      border-bottom:1px solid #e5e5e5;
-      padding-bottom:16px;
+    .title {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      border-bottom: 1px solid #e5e5e5;
+      padding-bottom: 16px;
     }
-    .title h1{ font-size:18pt; margin:0; }
-    .title .meta{
-      font-size:10.5pt;
-      color:#333;
-      word-break:break-all;
+    .title h1 { font-size: 18pt; margin: 0; }
+    .title .meta {
+      font-size: 10.5pt;
+      color: #333;
+      word-break: break-all;
     }
 
     /* ===== QR：画面サイズに追従 ===== */
-    .qrArea{
-      display:flex;
-      justify-content:center;
-      align-items:center;
+    .qrArea {
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    .qrBox{
-      width:min(520px,90vw);
-      padding:12px;
-      box-sizing:border-box;
-      display:flex;
-      justify-content:center;
-      align-items:center;
+    .qrBox {
+      width: min(520px, 90vw);
+      padding: 12px;
+      box-sizing: border-box;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-    canvas{
-      width:100%;
-      height:auto;
-      display:block;
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
     }
 
-    /* フッター（個人情報は出さない） */
-    .footer{
-      border-top:1px solid #e5e5e5;
-      padding-top:16px;
-      font-size:10pt;
-      color:#444;
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
+    /* フッター（個人情報は一切出さない） */
+    .footer {
+      border-top: 1px solid #e5e5e5;
+      padding-top: 16px;
+      font-size: 10pt;
+      color: #444;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
-    body.a4-preview .page{
-      width:210mm;
-      height:297mm;
-      padding:15mm;
-      gap:10mm;
+    body.a4-preview .page {
+      width: 210mm;
+      height: 297mm;
+      padding: 15mm;
+      gap: 10mm;
     }
-    body.a4-preview .title{ padding-bottom:6mm; }
-    body.a4-preview .footer{ padding-top:6mm; }
-    body.a4-preview .qrBox{
-      width:120mm;
-      padding:10mm;
+    body.a4-preview .title { padding-bottom: 6mm; }
+    body.a4-preview .footer { padding-top: 6mm; }
+    body.a4-preview .qrBox {
+      width: 120mm;
+      padding: 10mm;
+    }
+
+    /* =====★ A4プレビュー中（画面）に十字罫線を表示（任意：見たい場合） ===== */
+    body.a4-preview .page::before,
+    body.a4-preview .page::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 5;
+    }
+    /* 縦罫線 */
+    body.a4-preview .page::before {
+      top: 0; bottom: 0;
+      left: 50%;
+      border-left: 0.3mm solid rgba(0,0,0,.45);
+      transform: translateX(-0.15mm);
+    }
+    /* 横罫線 */
+    body.a4-preview .page::after {
+      left: 0; right: 0;
+      top: 50%;
+      border-top: 0.3mm solid rgba(0,0,0,.45);
+      transform: translateY(-0.15mm);
     }
 
     /* ===== 印刷（A4） ===== */
-    @page{ size:A4; margin:0; }
+    @page { size: A4; margin: 0; } /* 印刷時の用紙設定 [1](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing) */
 
-    @media print{
-      /* 印刷時：個人情報を含むUIを非表示 */
-      .no-print{ display:none !important; }
+    @media print {
+      /* 印刷時：個人情報を含むUIは非表示 */
+      .no-print { display: none !important; }
 
       /* 印刷時はA4固定 */
-      body{ background:#fff; }
-      .page{
-        width:210mm;
-        height:297mm;
-        margin:0;
-        border-radius:0;
-        box-shadow:none;
-        padding:15mm;
-        gap:10mm;
-        position:relative;
-
-        /* ★ 縦横中央の罫線（4マス）：linear-gradientで確実に表示 */
-        background:
-          linear-gradient(
-            to right,
-            transparent calc(50% - 0.15mm),
-            #000        calc(50% - 0.15mm),
-            #000        calc(50% + 0.15mm),
-            transparent calc(50% + 0.15mm)
-          ),
-          linear-gradient(
-            to bottom,
-            transparent calc(50% - 0.15mm),
-            #000        calc(50% - 0.15mm),
-            #000        calc(50% + 0.15mm),
-            transparent calc(50% + 0.15mm)
-          );
-        background-repeat:no-repeat;
-        background-size:100% 100%, 100% 100%;
+      .page {
+        width: 210mm;
+        height: 297mm;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 15mm;
+        gap: 10mm;
+        position: relative; /* 罫線の基準 */
       }
+      .qrBox {
+        width: 120mm;
+        padding: 10mm;
+      }
+      body { background: #fff; }
 
-      .qrBox{
-        width:120mm;
-        padding:10mm;
+      /* =====★ 印刷プレビューでA4縦横中央に十字罫線（4マス） ===== */
+      .page::before,
+      .page::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999; /* 文字やQRの上に線を出したい場合 */
+      }
+      /* 縦罫線：ページの真ん中 */
+      .page::before {
+        top: 0; bottom: 0;
+        left: 50%;
+        border-left: 0.3mm solid #000; /* 罫線の太さ・色（好みで調整） */
+        transform: translateX(-0.15mm);
+      }
+      /* 横罫線：ページの真ん中 */
+      .page::after {
+        left: 0; right: 0;
+        top: 50%;
+        border-top: 0.3mm solid #000;
+        transform: translateY(-0.15mm);
       }
     }
   </style>
@@ -210,10 +236,10 @@
     // QRの中身（uのみ）
     const payload = params.get("u") ?? "";
 
-    // 表示用：未指定なら置換
+    // （表示用）未指定時の置換
     const v = (s) => (s && s.trim()) ? s : "（未指定）";
 
-    // 上部ツールバー中央：個人情報（画面のみ）
+    // 上部ツールバー中央：個人情報を表示（画面のみ）
     document.getElementById("toolbarLine").textContent =
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
@@ -222,7 +248,7 @@
     document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ===== QRを表示サイズに合わせて再描画 =====
+    // ===== QRを表示サイズに合わせて再描画（widthオプション） =====
     const canvas = document.getElementById("qrCanvas");
     const box = document.getElementById("qrBox");
 
@@ -234,6 +260,7 @@
 
     function renderQr() {
       const width = computeQrWidthPx();
+      // QRCode.toCanvas は width オプションで描画サイズを指定できる pmjs.com/package/qrcode/v/1.4.4)
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
@@ -242,7 +269,7 @@
       );
     }
 
-    // リサイズ時は間引き
+    // リサイズは間引き
     let t = 0;
     function scheduleRender() {
       clearTimeout(t);
@@ -253,29 +280,27 @@
     // 初回描画
     renderQr();
 
-    // ===== 「A4で印刷」クリック時だけA4表示 → 印刷 → 戻す =====
+    // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
     const printBtn = document.getElementById("printBtn");
 
     function enableA4Preview() {
       document.body.classList.add("a4-preview");
-      renderQr();
+      renderQr(); // サイズが変わるので再描画
     }
     function disableA4Preview() {
       document.body.classList.remove("a4-preview");
       renderQr();
     }
 
-    // 印刷プレビューを閉じたら元に戻す
-    window.addEventListener("afterprint", () => disableA4Preview());
+    // 印刷/プレビュー終了後に元へ戻す（afterprint） [2](https://developer.mozilla.org/en-US/docs/Web/API/Window/afterprint_event)
+    window.addEventListener("afterprint", () => {
+      disableA4Preview();
+    });
 
-    // ボタン押下でA4表示にしてから印刷
     printBtn.addEventListener("click", () => {
       enableA4Preview();
       window.print();
     });
-
-    // Ctrl+Pなどで印刷された場合もA4に寄せる（任意だが安全）
-    window.addEventListener("beforeprint", () => enableA4Preview());
 
     // URL引数を非表示（履歴を汚さない）
     if (location.search) {
