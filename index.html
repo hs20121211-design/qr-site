@@ -61,7 +61,8 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
-      position: relative; /* 罫線の重ね描き用 */
+      position: relative; /* SVG罫線の基準 */
+      overflow: hidden;   /* はみ出し防止 */
     }
 
     .title {
@@ -70,6 +71,8 @@
       justify-content: space-between;
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
+      position: relative;
+      z-index: 2;
     }
     .title h1 { font-size: 18pt; margin: 0; }
     .title .meta {
@@ -78,12 +81,31 @@
       word-break: break-all;
     }
 
+    /* ===== 罫線（SVGで描画：背景に依存しないので印刷で消えにくい） ===== */
+    .crosshair {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: none; /* 通常画面では非表示 */
+      z-index: 3;    /* QRの上に線を出したいなら3、下にしたいなら1 */
+    }
+    .crosshair line {
+      stroke: rgba(0,0,0,.22); /* 薄め */
+      stroke-width: 0.35mm;
+      stroke-dasharray: 14 14; /* 破線（A4で約3mm/3mm相当） */
+      shape-rendering: crispEdges;
+    }
+
     /* ===== QR：共通 ===== */
     .qrBox {
       box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
+      z-index: 2;
     }
     canvas {
       width: 100%;
@@ -96,27 +118,28 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
+      z-index: 2;
     }
     .qrBox--one {
       width: min(520px, 90vw);
       padding: 12px;
     }
 
-    /* 印刷・A4プレビュー：左上/右上に2つ */
+    /* 印刷・A4プレビュー：左上/右上に2つ（上段2マス内） */
     .qrArea--two {
-      display: none;               /* 通常は隠す */
+      display: none; /* 通常は隠す */
       width: 100%;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10mm;
       align-items: start;
       justify-items: center;
+      gap: 10mm;
+      position: relative;
+      z-index: 2;
     }
-    /* 通常は隠すので display を上書き */
-    body:not(.a4-preview) .qrArea--two { display: none; }
-
     .qrBox--two {
-      width: 80mm;                 /* 上段2マスに収まりやすいサイズ */
+      width: 80mm;  /* 上段2マスに収まりやすい */
       padding: 5mm;
     }
 
@@ -129,6 +152,8 @@
       display: flex;
       justify-content: space-between;
       gap: 12px;
+      position: relative;
+      z-index: 2;
     }
 
     /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
@@ -141,49 +166,22 @@
     body.a4-preview .title { padding-bottom: 6mm; }
     body.a4-preview .footer { padding-top: 6mm; }
 
-    /* A4プレビュー時：中央1つを隠し、2つ表示（強制） */
+    /* A4プレビュー時：中央1つを隠し、2つ表示 / 罫線も表示 */
     body.a4-preview .qrArea--one { display: none !important; }
     body.a4-preview .qrArea--two { display: grid !important; }
-
-    /* =====★ A4プレビュー中（画面）に十字罫線（破線・薄め） ===== */
-    body.a4-preview .page::before,
-    body.a4-preview .page::after {
-      content: "";
-      position: absolute;
-      pointer-events: none;
-      z-index: 5;
-    }
-    body.a4-preview .page::before {
-      top: 0; bottom: 0;
-      left: 50%;
-      width: 0.4mm;
-      transform: translateX(-0.2mm);
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0,0,0,.18) 0,
-        rgba(0,0,0,.18) 3mm,
-        transparent 3mm,
-        transparent 6mm
-      );
-    }
-    body.a4-preview .page::after {
-      left: 0; right: 0;
-      top: 50%;
-      height: 0.4mm;
-      transform: translateY(-0.2mm);
-      background: repeating-linear-gradient(
-        to right,
-        rgba(0,0,0,.18) 0,
-        rgba(0,0,0,.18) 3mm,
-        transparent 3mm,
-        transparent 6mm
-      );
-    }
+    body.a4-preview .crosshair { display: block !important; }
 
     /* ===== 印刷（A4） ===== */
     @page { size: A4; margin: 0; }
 
     @media print {
+      /* 背景が出ない問題対策（ただしSVG線は背景でなく要素なので本質的には不要）
+         それでも他の背景が必要な場合に有効 */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      } /* 背景の印刷挙動対策 [4](https://stackoverflow.com/questions/6670151/how-can-i-force-browsers-to-print-background-images-in-css)[3](https://gyas.co.jp/knowledge_blog/print-background/) */
+
       .no-print { display: none !important; }
 
       .page {
@@ -198,44 +196,13 @@
       }
       body { background: #fff; }
 
-      /* 印刷時：中央1つを必ず消して、2つを必ず出す（強制） */
+      /* 印刷時：中央1つを消して、上段2つを出す */
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
 
-      /* =====★ 印刷プレビュー/印刷の十字罫線（破線・薄め） ===== */
-      .page::before,
-      .page::after {
-        content: "";
-        position: absolute;
-        pointer-events: none;
-        z-index: 9999;
-      }
-      .page::before {
-        top: 0; bottom: 0;
-        left: 50%;
-        width: 0.4mm;
-        transform: translateX(-0.2mm);
-        background: repeating-linear-gradient(
-          to bottom,
-          rgba(0,0,0,.22) 0,
-          rgba(0,0,0,.22) 3mm,
-          transparent 3mm,
-          transparent 6mm
-        );
-      }
-      .page::after {
-        left: 0; right: 0;
-        top: 50%;
-        height: 0.4mm;
-        transform: translateY(-0.2mm);
-        background: repeating-linear-gradient(
-          to right,
-          rgba(0,0,0,.22) 0,
-          rgba(0,0,0,.22) 3mm,
-          transparent 3mm,
-          transparent 6mm
-        );
-      }
+      /* 印刷時：罫線を表示 */
+      .crosshair { display: block !important; }
+      .crosshair line { stroke: rgba(0,0,0,.22); }
     }
   </style>
 </head>
@@ -248,6 +215,12 @@
   </div>
 
   <section class="page" id="page">
+    <!-- 十字罫線（SVG：印刷/プレビューで確実に出る） -->
+    <svg class="crosshair" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+      <line x1="500" y1="0" x2="500" y2="1000"></line>
+      <line x1="0" y1="500" x2="1000" y2="500"></line>
+    </svg>
+
     <div class="title">
       <h1>QRコード</h1>
       <div class="meta" id="metaLine"></div>
@@ -276,7 +249,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ（ここが正しい形） -->
+  <!-- QRコード生成ライブラリ（正しいscriptタグ） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -294,13 +267,11 @@
     // （表示用）未指定時の置換
     const v = (s) => (s && s.trim()) ? s : "（未指定）";
 
-    // 上部ツールバー中央：個人情報を表示（画面のみ）
     document.getElementById("toolbarLine").textContent =
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
-    // メタ・フッター（個人情報なし）
     const ecc = "M";
-    document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
+    document.getElementById("metaLine").textContent = `ecc=${ecc} / print:2QR`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
     function computeQrWidthPx(box) {
@@ -316,11 +287,6 @@
 
       const width = computeQrWidthPx(box);
 
-      if (!window.QRCode || !QRCode.toCanvas) {
-        console.error("QRCode library not loaded.");
-        return;
-      }
-
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
@@ -330,14 +296,12 @@
     }
 
     function renderAllQrs() {
-      // 中央
       renderTo("qrCanvasOne", "qrBoxOne");
-      // 左上・右上（印刷/プレビュー用）
       renderTo("qrCanvasLeft", "qrBoxLeft");
       renderTo("qrCanvasRight", "qrBoxRight");
     }
 
-    // 初回描画（ロード後に確実に）
+    // 初回描画
     window.addEventListener("load", renderAllQrs);
 
     // リサイズは間引き
@@ -348,30 +312,20 @@
     }
     window.addEventListener("resize", scheduleRender);
 
-    // ✅ 印刷プレビュー開始時に必ず描き直す（ここが効きます）
-    // beforeprint/afterprint は印刷制御用イベント [1](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing)
+    // 印刷プレビュー開始時にも描き直す（印刷時のサイズ確定後にveloper.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing)
     window.addEventListener("beforeprint", () => {
       renderAllQrs();
     });
-
-    // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
-    const printBtn = document.getElementById("printBtn");
-
-    function enableA4Preview() {
-      document.body.classList.add("a4-preview");
-      renderAllQrs(); // サイズが変わるので再描画
-    }
-    function disableA4Preview() {
+    window.addEventListener("afterprint", () => {
       document.body.classList.remove("a4-preview");
       renderAllQrs();
-    }
-
-    window.addEventListener("afterprint", () => {
-      disableA4Preview();
     });
 
+    // 「A4で印刷」クリック時だけA4プレビュー → 印刷
+    const printBtn = document.getElementById("printBtn");
     printBtn.addEventListener("click", () => {
-      enableA4Preview();
+      document.body.classList.add("a4-preview");
+      renderAllQrs();
       window.print();
     });
 
