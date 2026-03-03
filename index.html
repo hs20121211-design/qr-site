@@ -70,8 +70,43 @@
       justify-content: space-between;
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
+      gap: 14px;
     }
     .title h1 { font-size: 18pt; margin: 0; }
+
+    /* 右側（案内文 + meta） */
+    .titleRight {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    /* ===== 案内文（ここで出し分け） ===== */
+    .notice {
+      font-size: 10.5pt;
+      color: #333;
+      text-align: right;
+      line-height: 1.35;
+      word-break: break-word;
+      max-width: 680px;
+    }
+    .notice .msg { display: none; }              /* まず全部隠す */
+    .notice .msg--pc { display: inline; }        /* PC通常表示のみ出す（デフォルト） */
+
+    /* スマホ/タブレット：モバイル文言を表示 */
+    @media (pointer: coarse) {
+      .notice { font-size: 11.5pt; max-width: none; }
+      .notice .msg--pc { display: none; }
+      .notice .msg--mobile { display: inline; }
+    }
+
+    /* A4プレビュー（画面）：プレビュー文言を表示 */
+    body.a4-preview .notice .msg--pc { display: none; }
+    body.a4-preview .notice .msg--mobile { display: none; }
+    body.a4-preview .notice .msg--preview { display: inline; }
+
     .title .meta {
       font-size: 10.5pt;
       color: #333;
@@ -207,6 +242,10 @@
         transform: translateY(-0.15mm);
         border-top: 0.3mm solid rgba(0,0,0,.25);
       }
+
+      /* ✅ 印刷時は「印刷用文言」だけを出す */
+      .notice .msg { display: none !important; }
+      .notice .msg--print { display: inline !important; }
     }
 
     /* =========================================================
@@ -259,7 +298,22 @@
   <section class="page" id="page">
     <div class="title">
       <h1>QRコード</h1>
-      <div class="meta" id="metaLine"></div>
+
+      <!-- ✅ 右側：案内文 + meta -->
+      <div class="titleRight">
+        <div class="notice" aria-live="polite">
+          <!-- PC初期表示 -->
+          <span class="msg msg--pc">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。</span>
+          <!-- スマホ/タブレット初期表示 -->
+          <span class="msg msg--mobile">ご来場の際は、この画面のQRコードを受付にご提示ください。</span>
+          <!-- A4プレビュー（画面）表示 -->
+          <span class="msg msg--preview">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。</span>
+          <!-- 印刷時に印字する文言 -->
+          <span class="msg msg--print">ご来場の際は、このQRコードを受付にご提示ください。</span>
+        </div>
+
+        <div class="meta" id="metaLine"></div>
+      </div>
     </div>
 
     <!-- 通常画面：中央1つ -->
@@ -285,7 +339,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ（scriptタグ正） -->
+  <!-- ✅ QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
