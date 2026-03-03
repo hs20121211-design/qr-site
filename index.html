@@ -68,20 +68,20 @@
     .title {
       display: flex;
       align-items: baseline;
-      justify-content: flex-start;   /* 追加：左寄せ */
+      justify-content: flex-start;
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
-      gap: 12px;                    /* 追加：要素間余白 */
+      gap: 12px;
     }
     .title h1 {
       font-size: 18pt;
       margin: 0;
-      white-space: nowrap;          /* 追加：QRコードが改行されない */
+      white-space: nowrap;
     }
 
-    /* ===== ✅ 追加：見出し右の案内文（PC/スマホで出し分け） ===== */
+    /* ===== ✅ 見出し右の案内文（通常画面のみで表示） ===== */
     .guideText {
-      flex: 1;                      /* 追加：中央〜右側に伸びる */
+      flex: 1;
       font-size: 10.5pt;
       color: #333;
       line-height: 1.5;
@@ -99,13 +99,13 @@
       }
     }
 
-    /* 右端のメタ情報（従来どおり） */
+    /* ✅右端のメタ情報（従来どおり） */
     .title .meta {
       font-size: 10.5pt;
       color: #333;
       word-break: break-all;
       white-space: nowrap;
-      margin-left: auto;            /* 追加：右端へ寄せる */
+      margin-left: auto; /* 右端へ */
     }
 
     /* ===== QR：共通 ===== */
@@ -173,6 +173,9 @@
     body.a4-preview .qrArea--one { display: none; }
     body.a4-preview .qrArea--two { display: grid; }
 
+    /* ✅要件：印刷プレビュー（A4プレビュー）には案内文を出さない */
+    body.a4-preview .guideText { display: none !important; }
+
     /* =====★ A4プレビュー中（画面）に十字罫線（薄い実線・背景不使用） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
@@ -217,6 +220,9 @@
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
 
+      /* ✅要件：印刷には案内文を入れない */
+      .guideText { display: none !important; }
+
       /* =====★ 印刷時の十字罫線（薄い実線・背景不使用） ===== */
       .page::before,
       .page::after {
@@ -245,7 +251,6 @@
        - 上下左右中央に表示
        ========================================================= */
     @media (pointer: coarse) {
-      /* スマホは「印刷用ページ」ではなく「閲覧用」なのでフル画面寄せ */
       .page {
         width: 100vw;
         min-height: 100vh;
@@ -256,11 +261,9 @@
         gap: 12px;
       }
 
-      /* タイトル・フッターを少し詰める（残す） */
       .title { padding-bottom: 10px; }
       .footer { padding-top: 10px; }
 
-      /* タイトル・フッター以外の領域を使って中央寄せ */
       .qrArea--one {
         flex: 1;
         min-height: 0;
@@ -269,17 +272,14 @@
         justify-content: center;
       }
 
-      /* QRを“画面短辺の80%相当”に（縦横中央） */
       .qrBox--one {
-        width: 80vmin;     /* 画面の短辺基準で80% */
+        width: 80vmin;     /* 画面短辺の80% */
         max-width: 80vmin;
-        padding: 0;        /* 余白は最小にして大きく */
+        padding: 0;
       }
 
-      /* ✅ 追加：スマホでは長文が詰まりすぎないよう少しだけ調整（任意） */
-      .guideText {
-        font-size: 10pt;
-      }
+      /* 任意：スマホでは文字をほんの少し詰める */
+      .guideText { font-size: 10pt; }
     }
   </style>
 </head>
@@ -295,7 +295,7 @@
     <div class="title">
       <h1>QRコード</h1>
 
-      <!-- ✅追加：見出し右の案内文（PC/スマホで自動切替） -->
+      <!-- ✅通常画面のみ案内文を表示（A4プレビュー/印刷ではCSSで非表示） -->
       <div class="guideText" id="guideText"></div>
 
       <div class="meta" id="metaLine"></div>
@@ -324,7 +324,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ（scriptタグ正） -->
+  <!-- ✅ QRコード生成ライブラリ（正しいscriptタグ） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
