@@ -78,20 +78,42 @@
       word-break: break-all;
     }
 
-    /* ===== QR：画面サイズに追従 ===== */
+    /* ===== QR：共通 ===== */
     .qrArea {
+      width: 100%;
+    }
+
+    /* 通常画面：中央1つ */
+    .qrArea--one {
       display: flex;
       justify-content: center;
       align-items: center;
     }
     .qrBox {
-      width: min(520px, 90vw);
-      padding: 12px;
       box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
     }
+    .qrBox--one {
+      width: min(520px, 90vw);
+      padding: 12px;
+    }
+
+    /* 印刷・A4プレビュー用：左上/右上に2つ */
+    .qrArea--two {
+      display: none; /* 通常は隠す */
+      grid-template-columns: 1fr 1fr;
+      gap: 10mm;
+      align-items: start;
+      justify-items: center;
+      width: 100%;
+    }
+    .qrBox--two {
+      width: 80mm;      /* 2マス（左上/右上）に収まるよう固定 */
+      padding: 5mm;
+    }
+
     canvas {
       width: 100%;
       height: auto;
@@ -118,12 +140,12 @@
     }
     body.a4-preview .title { padding-bottom: 6mm; }
     body.a4-preview .footer { padding-top: 6mm; }
-    body.a4-preview .qrBox {
-      width: 120mm;
-      padding: 10mm;
-    }
 
-    /* =====★ A4プレビュー中（画面）に十字罫線を表示（破線・薄め） ===== */
+    /* A4プレビュー時：中央1つを隠し、2つ表示 */
+    body.a4-preview .qrArea--one { display: none; }
+    body.a4-preview .qrArea--two { display: grid; }
+
+    /* =====★ A4プレビュー中（画面）に十字罫線（破線・薄め） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
       content: "";
@@ -132,22 +154,20 @@
       z-index: 5;
     }
 
-    /* 縦罫線：背景の repeating-linear-gradient で破線を固定化 */
     body.a4-preview .page::before {
       top: 0; bottom: 0;
       left: 50%;
-      width: 0.4mm;                 /* 太さ（印刷で潰れにくい） */
+      width: 0.4mm;
       transform: translateX(-0.2mm);
       background: repeating-linear-gradient(
         to bottom,
-        rgba(0,0,0,.18) 0,          /* 破線色（薄め） */
-        rgba(0,0,0,.18) 3mm,        /* 線分の長さ */
+        rgba(0,0,0,.18) 0,
+        rgba(0,0,0,.18) 3mm,
         transparent 3mm,
-        transparent 6mm             /* 間隔（= 3mm線 + 3mm空白） */
+        transparent 6mm
       );
     }
 
-    /* 横罫線：背景の repeating-linear-gradient で破線を固定化 */
     body.a4-preview .page::after {
       left: 0; right: 0;
       top: 50%;
@@ -163,13 +183,11 @@
     }
 
     /* ===== 印刷（A4） ===== */
-    @page { size: A4; margin: 0; } /* 印刷時の用紙設定 */
+    @page { size: A4; margin: 0; }
 
     @media print {
-      /* 印刷時：個人情報を含むUIは非表示 */
       .no-print { display: none !important; }
 
-      /* 印刷時はA4固定 */
       .page {
         width: 210mm;
         height: 297mm;
@@ -178,24 +196,24 @@
         box-shadow: none;
         padding: 15mm;
         gap: 10mm;
-        position: relative; /* 罫線の基準 */
+        position: relative;
       }
-      .qrBox {
-        width: 120mm;
-        padding: 10mm;
-      }
+
       body { background: #fff; }
 
-      /* =====★ 印刷プレビュー/印刷でA4縦横中央に十字罫線（破線・薄め） ===== */
+      /* 印刷時：中央1つを隠し、2つ表示 */
+      .qrArea--one { display: none !important; }
+      .qrArea--two { display: grid !important; }
+
+      /* =====★ 印刷プレビュー/印刷の十字罫線（破線・薄め） ===== */
       .page::before,
       .page::after {
         content: "";
         position: absolute;
         pointer-events: none;
-        z-index: 9999; /* 文字やQRの上に線を出したい場合 */
+        z-index: 9999;
       }
 
-      /* 縦罫線（破線） */
       .page::before {
         top: 0; bottom: 0;
         left: 50%;
@@ -203,14 +221,13 @@
         transform: translateX(-0.2mm);
         background: repeating-linear-gradient(
           to bottom,
-          rgba(0,0,0,.22) 0,        /* 印刷は少し濃いめ（任意） */
+          rgba(0,0,0,.22) 0,
           rgba(0,0,0,.22) 3mm,
           transparent 3mm,
           transparent 6mm
         );
       }
 
-      /* 横罫線（破線） */
       .page::after {
         left: 0; right: 0;
         top: 50%;
@@ -241,9 +258,20 @@
       <div class="meta" id="metaLine"></div>
     </div>
 
-    <div class="qrArea">
-      <div class="qrBox" id="qrBox">
-        <canvas id="qrCanvas"></canvas>
+    <!-- 通常画面：中央1つ -->
+    <div class="qrArea qrArea--one">
+      <div class="qrBox qrBox--one" id="qrBoxOne">
+        <canvas id="qrCanvasOne"></canvas>
+      </div>
+    </div>
+
+    <!-- 印刷/A4プレビュー：左上・右上に同じQRを2つ -->
+    <div class="qrArea qrArea--two" id="qrAreaTwo">
+      <div class="qrBox qrBox--two" id="qrBoxLeft">
+        <canvas id="qrCanvasLeft"></canvas>
+      </div>
+      <div class="qrBox qrBox--two" id="qrBoxRight">
+        <canvas id="qrCanvasRight"></canvas>
       </div>
     </div>
 
@@ -253,7 +281,7 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ（正しいscriptタグ） -->
+  <!-- QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -280,18 +308,19 @@
     document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ===== QRを表示サイズに合わせて再描画（widthオプション） =====
-    const canvas = document.getElementById("qrCanvas");
-    const box = document.getElementById("qrBox");
-
-    function computeQrWidthPx() {
+    // ===== QRをそれぞれのボックス幅に合わせて描画 =====
+    function computeQrWidthPx(box) {
       const w = Math.floor(box.getBoundingClientRect().width);
       const clamped = Math.max(160, Math.min(w, 1100));
       return clamped - (clamped % 2);
     }
 
-    function renderQr() {
-      const width = computeQrWidthPx();
+    function renderTo(canvasId, boxId) {
+      const canvas = document.getElementById(canvasId);
+      const box = document.getElementById(boxId);
+      if (!canvas || !box) return;
+
+      const width = computeQrWidthPx(box);
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
@@ -300,30 +329,35 @@
       );
     }
 
+    function renderAllQrs() {
+      renderTo("qrCanvasOne", "qrBoxOne");     // 通常画面
+      renderTo("qrCanvasLeft", "qrBoxLeft");   // 印刷/A4プレビュー左
+      renderTo("qrCanvasRight", "qrBoxRight"); // 印刷/A4プレビュー右
+    }
+
     // リサイズは間引き
     let t = 0;
     function scheduleRender() {
       clearTimeout(t);
-      t = setTimeout(renderQr, 120);
+      t = setTimeout(renderAllQrs, 120);
     }
     window.addEventListener("resize", scheduleRender);
 
     // 初回描画
-    renderQr();
+    renderAllQrs();
 
     // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
     const printBtn = document.getElementById("printBtn");
 
     function enableA4Preview() {
       document.body.classList.add("a4-preview");
-      renderQr(); // サイズが変わるので再描画
+      renderAllQrs(); // サイズが変わるので再描画
     }
     function disableA4Preview() {
       document.body.classList.remove("a4-preview");
-      renderQr();
+      renderAllQrs();
     }
 
-    // 印刷/プレビュー終了後に元へ戻す（afterprint）
     window.addEventListener("afterprint", () => {
       disableA4Preview();
     });
