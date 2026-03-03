@@ -123,7 +123,7 @@
       padding: 10mm;
     }
 
-    /* =====★ A4プレビュー中（画面）に十字罫線を表示（任意：見たい場合） ===== */
+    /* =====★ A4プレビュー中（画面）に十字罫線を表示（破線・薄め） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
       content: "";
@@ -131,19 +131,35 @@
       pointer-events: none;
       z-index: 5;
     }
-    /* 縦罫線（破線・薄め） */
+
+    /* 縦罫線：背景の repeating-linear-gradient で破線を固定化 */
     body.a4-preview .page::before {
       top: 0; bottom: 0;
       left: 50%;
-      border-left: 0.3mm dashed rgba(0,0,0,.18); /* ← 実線→破線、色を薄く */
-      transform: translateX(-0.15mm);
+      width: 0.4mm;                 /* 太さ（印刷で潰れにくい） */
+      transform: translateX(-0.2mm);
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,0,0,.18) 0,          /* 破線色（薄め） */
+        rgba(0,0,0,.18) 3mm,        /* 線分の長さ */
+        transparent 3mm,
+        transparent 6mm             /* 間隔（= 3mm線 + 3mm空白） */
+      );
     }
-    /* 横罫線（破線・薄め） */
+
+    /* 横罫線：背景の repeating-linear-gradient で破線を固定化 */
     body.a4-preview .page::after {
       left: 0; right: 0;
       top: 50%;
-      border-top: 0.3mm dashed rgba(0,0,0,.18);  /* ← 実線→破線、色を薄く */
-      transform: translateY(-0.15mm);
+      height: 0.4mm;
+      transform: translateY(-0.2mm);
+      background: repeating-linear-gradient(
+        to right,
+        rgba(0,0,0,.18) 0,
+        rgba(0,0,0,.18) 3mm,
+        transparent 3mm,
+        transparent 6mm
+      );
     }
 
     /* ===== 印刷（A4） ===== */
@@ -170,7 +186,7 @@
       }
       body { background: #fff; }
 
-      /* =====★ 印刷プレビューでA4縦横中央に十字罫線（4マス） ===== */
+      /* =====★ 印刷プレビュー/印刷でA4縦横中央に十字罫線（破線・薄め） ===== */
       .page::before,
       .page::after {
         content: "";
@@ -178,19 +194,35 @@
         pointer-events: none;
         z-index: 9999; /* 文字やQRの上に線を出したい場合 */
       }
-      /* 縦罫線：ページの真ん中（破線・薄め） */
+
+      /* 縦罫線（破線） */
       .page::before {
         top: 0; bottom: 0;
         left: 50%;
-        border-left: 0.3mm dashed rgba(0,0,0,.22); /* ← 実線→破線、色を薄く */
-        transform: translateX(-0.15mm);
+        width: 0.4mm;
+        transform: translateX(-0.2mm);
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(0,0,0,.22) 0,        /* 印刷は少し濃いめ（任意） */
+          rgba(0,0,0,.22) 3mm,
+          transparent 3mm,
+          transparent 6mm
+        );
       }
-      /* 横罫線：ページの真ん中（破線・薄め） */
+
+      /* 横罫線（破線） */
       .page::after {
         left: 0; right: 0;
         top: 50%;
-        border-top: 0.3mm dashed rgba(0,0,0,.22);  /* ← 実線→破線、色を薄く */
-        transform: translateY(-0.15mm);
+        height: 0.4mm;
+        transform: translateY(-0.2mm);
+        background: repeating-linear-gradient(
+          to right,
+          rgba(0,0,0,.22) 0,
+          rgba(0,0,0,.22) 3mm,
+          transparent 3mm,
+          transparent 6mm
+        );
       }
     }
   </style>
@@ -260,7 +292,6 @@
 
     function renderQr() {
       const width = computeQrWidthPx();
-      // QRCode.toCanvas は width オプションで描画サイズを指定できる
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
