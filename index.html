@@ -13,7 +13,7 @@
       color: #111;
     }
 
-    /* ===== Toolbar ===== */
+    /* ===== Toolbar（上部：個人情報はここだけ） ===== */
     .toolbar {
       max-width: 1100px;
       margin: 16px auto;
@@ -43,11 +43,9 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットではツールバー自体を非表示 */
+    /* スマホ・タブレットではツールバー自体を非表示（＝個人情報も出ない） */
     @media (pointer: coarse) {
-      .toolbar {
-        display: none !important;
-      }
+      .toolbar { display: none !important; }
     }
 
     /* ===== Page ===== */
@@ -79,26 +77,27 @@
     .title .meta {
       font-size: 10.5pt;
       color: #333;
+      word-break: break-all;
     }
 
+    /* 中央にQRのみ */
     .qrArea {
       display: flex;
       justify-content: center;
       align-items: center;
     }
-
     .qrBox {
       display: flex;
       justify-content: center;
       padding: 10mm;
     }
-
     canvas {
       max-width: 120mm;
       width: 100%;
       height: auto;
     }
 
+    /* フッター（個人情報は一切出さない） */
     .footer {
       border-top: 1px solid #e5e5e5;
       padding-top: 6mm;
@@ -106,11 +105,12 @@
       color: #444;
       display: flex;
       justify-content: space-between;
+      gap: 12px;
     }
 
     @page { size: A4; margin: 0; }
 
-    /* 印刷時は個人情報を含むUIを完全非表示 */
+    /* 印刷時：ツールバー（個人情報）を完全非表示 */
     @media print {
       .no-print { display: none !important; }
       .page {
@@ -123,7 +123,7 @@
 </head>
 
 <body>
-  <!-- ツールバー（PCのみ表示・印刷時非表示） -->
+  <!-- 上部（画面表示のみ：個人情報はここだけ） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
@@ -147,24 +147,29 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ -->
+  <!-- QRコード生成ライブラリ（正しいscriptタグ） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
     const params = new URLSearchParams(location.search);
 
+    // 個人情報（上部のみ表示に使用）
     const k = params.get("k") ?? "";
     const b = params.get("b") ?? "";
     const y = params.get("y") ?? "";
     const n = params.get("n") ?? "";
+
+    // QRの中身（uのみ）
     const u = params.get("u") ?? "";
 
-    const v = (s) => s && s.trim() ? s : "（未指定）";
+    // （表示用）未指定時の置換
+    const v = (s) => (s && s.trim()) ? s : "（未指定）";
 
-    // ツールバー中央（画面表示のみ）
+    // 上部ツールバー中央：個人情報を表示（画面のみ）
     document.getElementById("toolbarLine").textContent =
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
+    // メタ・フッター（個人情報は入れない）
     document.getElementById("metaLine").textContent = "ecc=M / size=720";
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
@@ -175,10 +180,10 @@
       { width: 720, margin: 2, errorCorrectionLevel: "M" }
     );
 
-    document.getElementById("printBtn")
-      .addEventListener("click", () => window.print());
+    // 印刷
+    document.getElementById("printBtn").addEventListener("click", () => window.print());
 
-    // URL引数を非表示（履歴を汚さない）
+    // URL引数を非表示（アドレスバーから消す：表示後に履歴を汚さない）
     if (location.search) {
       history.replaceState(null, document.title, location.pathname);
     }
