@@ -144,26 +144,22 @@
 
         /* ★ 縦横中央の罫線（4マス）：linear-gradientで確実に表示 */
         background:
-          /* 縦：点線 */
-          repeating-linear-gradient(
-            to bottom,
-            transparent 0,
-            transparent 2mm,
-            #000 2mm,
-            #000 2.6mm
-          ),
-          /* 横：点線 */
-          repeating-linear-gradient(
+          linear-gradient(
             to right,
-            transparent 0,
-            transparent 2mm,
-            #000 2mm,
-            #000 2.6mm
+            transparent calc(50% - 0.15mm),
+            #000        calc(50% - 0.15mm),
+            #000        calc(50% + 0.15mm),
+            transparent calc(50% + 0.15mm)
+          ),
+          linear-gradient(
+            to bottom,
+            transparent calc(50% - 0.15mm),
+            #000        calc(50% - 0.15mm),
+            #000        calc(50% + 0.15mm),
+            transparent calc(50% + 0.15mm)
           );
-        
-        background-position: 50% 0, 0 50%;
-        background-size: 0.3mm 100%, 100% 0.3mm;
-        background-repeat: no-repeat;
+        background-repeat:no-repeat;
+        background-size:100% 100%, 100% 100%;
       }
 
       .qrBox{
