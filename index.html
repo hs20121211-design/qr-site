@@ -43,13 +43,6 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットでは印刷ボタン非表示 */
-    @media (pointer: coarse) {
-      #printBtn {
-        display: none !important;
-      }
-    }
-
     /* ===== Page ===== */
     .page {
       width: 210mm;
@@ -85,7 +78,6 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 12mm;
-      align-items: start;
     }
 
     .qrStack {
@@ -103,15 +95,12 @@
     canvas {
       max-width: 120mm;
       width: 100%;
-      height: auto;
     }
 
     .gUnderQr {
       text-align: center;
       font-size: 13pt;
       font-weight: 800;
-      margin-top: 2mm;
-      word-break: break-word;
     }
 
     .infoOutside {
@@ -130,9 +119,6 @@
     .infoOutside .row + .row {
       border-top: 1px dashed #e6e8eb;
     }
-    .infoOutside .label { font-weight: 800; }
-    .infoOutside .value { font-weight: 600; }
-    .infoOutside .empty { color: #777; }
 
     .footer {
       border-top: 1px solid #e5e5e5;
@@ -185,8 +171,7 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
+  https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.jsscript>
 
   <script>
     const params = new URLSearchParams(location.search);
@@ -197,24 +182,25 @@
     const n = params.get("n") ?? "";
     const u = params.get("u") ?? "";
 
-    const v = (s) => s && s.trim() ? s : "（未指定）";
+    const v = s => s && s.trim() ? s : "（未指定）";
 
-    // ツールバー中央表示
     document.getElementById("toolbarLine").textContent =
       `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
 
-    document.getElementById("metaLine").textContent = "ecc=M / size=720";
-    document.getElementById("footerInfo").textContent = new Date().toLocaleString();
+    document.getElementById("metaLine").textContent =
+      `ecc=M / size=720`;
 
-    // 枠外情報
-    document.getElementById("outsideInfo").innerHTML = `
-      <div class="row"><div class="label">会社名：</div><div class="value">${v(k)}</div></div>
-      <div class="row"><div class="label">部署：</div><div class="value">${v(b)}</div></div>
-      <div class="row"><div class="label">役職：</div><div class="value">${v(y)}</div></div>
-      <div class="row"><div class="label">お名前：</div><div class="value">${v(n)}</div></div>
+    document.getElementById("footerInfo").textContent =
+      new Date().toLocaleString();
+
+    const outsideInfo = document.getElementById("outsideInfo");
+    outsideInfo.innerHTML = `
+      <div class="row"><div>会社名：</div><div>${v(k)}</div></div>
+      <div class="row"><div>部署：</div><div>${v(b)}</div></div>
+      <div class="row"><div>役職：</div><div>${v(y)}</div></div>
+      <div class="row"><div>お名前：</div><div>${v(n)}</div></div>
     `;
 
-    // QR生成（uのみ）
     QRCode.toCanvas(
       document.getElementById("qrCanvas"),
       u || "（u が指定されていません）",
@@ -224,7 +210,7 @@
     document.getElementById("printBtn")
       .addEventListener("click", () => window.print());
 
-    // URL引数を非表示
+    /* ===== URL引数を非表示 ===== */
     if (location.search) {
       history.replaceState(null, document.title, location.pathname);
     }
