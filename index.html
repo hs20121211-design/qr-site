@@ -13,7 +13,7 @@
       color: #111;
     }
 
-    /* ===== Toolbar（上部：画面表示のみ） ===== */
+    /* ===== Toolbar（上部：個人情報はここだけ） ===== */
     .toolbar {
       max-width: 1100px;
       margin: 16px auto;
@@ -43,12 +43,12 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットではツールバー自体を非表示 */
+    /* スマホ・タブレットではツールバー自体を非表示（＝個人情報も出ない） */
     @media (pointer: coarse) {
       .toolbar { display: none !important; }
     }
 
-    /* ===== Page：レスポンシブ ===== */
+    /* ===== Page：初期表示はA4固定にしない（レスポンシブ） ===== */
     .page {
       width: min(1100px, 96vw);
       height: auto;
@@ -57,11 +57,11 @@
       box-shadow: 0 6px 24px rgba(0,0,0,.12);
       border-radius: 10px;
       box-sizing: border-box;
-      padding: 24px;
+      padding: 24px; /* 画面用 */
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
-      position: relative;
+      position: relative; /* 罫線の重ね描き用 */
     }
 
     .title {
@@ -78,7 +78,7 @@
       word-break: break-all;
     }
 
-    /* ===== QR ===== */
+    /* ===== QR：共通 ===== */
     .qrArea { width: 100%; }
 
     /* 通常画面：中央1つ */
@@ -100,7 +100,7 @@
 
     /* 印刷・A4プレビュー用：左上/右上に2つ */
     .qrArea--two {
-      display: none;
+      display: none; /* 通常は隠す */
       grid-template-columns: 1fr 1fr;
       gap: 10mm;
       align-items: start;
@@ -108,7 +108,7 @@
       width: 100%;
     }
     .qrBox--two {
-      width: 80mm;
+      width: 80mm;      /* 2マス（左上/右上）に収まるよう固定 */
       padding: 5mm;
     }
 
@@ -118,7 +118,7 @@
       display: block;
     }
 
-    /* フッター */
+    /* フッター（個人情報は一切出さない） */
     .footer {
       border-top: 1px solid #e5e5e5;
       padding-top: 16px;
@@ -129,7 +129,7 @@
       gap: 12px;
     }
 
-    /* ===== クリック時だけ「画面上でA4」プレビュー ===== */
+    /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
     body.a4-preview .page {
       width: 210mm;
       height: 297mm;
@@ -139,10 +139,11 @@
     body.a4-preview .title { padding-bottom: 6mm; }
     body.a4-preview .footer { padding-top: 6mm; }
 
+    /* A4プレビュー時：中央1つを隠し、2つ表示 */
     body.a4-preview .qrArea--one { display: none; }
     body.a4-preview .qrArea--two { display: grid; }
 
-    /* ===== ★A4プレビュー（画面）十字罫線：薄い実線（背景不使用） ===== */
+    /* =====★ A4プレビュー中（画面）に十字罫線（薄い実線・背景不使用） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
       content: "";
@@ -186,7 +187,7 @@
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
 
-      /* ===== ★印刷時の十字罫線：薄い実線（背景不使用） ===== */
+      /* =====★ 印刷時の十字罫線（薄い実線・背景不使用） ===== */
       .page::before,
       .page::after {
         content: "";
@@ -207,11 +208,49 @@
         border-top: 0.3mm solid rgba(0,0,0,.25);
       }
     }
+
+    /* =========================================================
+       ✅ 追加要件：スマホ/タブレット表示時
+       - QRを画面の約80%で表示
+       - 上下左右中央に表示
+       ========================================================= */
+    @media (pointer: coarse) {
+      /* スマホは「印刷用ページ」ではなく「閲覧用」なのでフル画面寄せ */
+      .page {
+        width: 100vw;
+        min-height: 100vh;
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        padding: 12px;
+        gap: 12px;
+      }
+
+      /* タイトル・フッターを少し詰める（残す） */
+      .title { padding-bottom: 10px; }
+      .footer { padding-top: 10px; }
+
+      /* タイトル・フッター以外の領域を使って中央寄せ */
+      .qrArea--one {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* QRを“画面短辺の80%相当”に（縦横中央） */
+      .qrBox--one {
+        width: 80vmin;     /* 画面の短辺基準で80% */
+        max-width: 80vmin;
+        padding: 0;        /* 余白は最小にして大きく */
+      }
+    }
   </style>
 </head>
 
 <body>
-  <!-- 上部（画面表示のみ） -->
+  <!-- 上部（画面表示のみ：個人情報はここだけ） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
@@ -246,7 +285,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ（scriptタグ修正済み） -->
+  <!-- ✅ QRコード生成ライブラリ（scriptタグ正） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -264,14 +303,14 @@
 
       const v = (s) => (s && s.trim()) ? s : "（未指定）";
 
-      // 上部ツールバー中央（画面のみ）
+      // 上部ツールバー中央：個人情報を表示（画面のみ）
       const toolbarLine = document.getElementById("toolbarLine");
       if (toolbarLine) {
         toolbarLine.textContent =
           `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
       }
 
-      // メタ・フッター
+      // メタ・フッター（個人情報なし）
       const ecc = "M";
       document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
       document.getElementById("footerInfo").textContent = new Date().toLocaleString();
@@ -290,7 +329,7 @@
 
         const width = computeQrWidthPx(box);
 
-        // ✅ Android対策：レイアウト確定前（width=0）なら次フレームで再試行
+        // ✅ Android対策：レイアウト確定前（width=0等）なら次フレームで再試行
         if (!width || width <= 0) {
           requestAnimationFrame(() => renderTo(canvasId, boxId));
           return;
@@ -311,9 +350,7 @@
       }
 
       // ✅ 初回描画：2フレーム待ち（Androidの幅0事故を避ける）
-      requestAnimationFrame(() =>
-        requestAnimationFrame(renderAllQrs)
-      );
+      requestAnimationFrame(() => requestAnimationFrame(renderAllQrs));
 
       // リサイズは間引き
       let t = 0;
