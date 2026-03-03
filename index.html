@@ -13,7 +13,7 @@
       color: #111;
     }
 
-    /* ===== Toolbar（上部：個人情報はここだけ） ===== */
+    /* ===== Toolbar ===== */
     .toolbar {
       max-width: 1100px;
       margin: 16px auto;
@@ -30,7 +30,6 @@
       padding: 10px 14px;
       cursor: pointer;
       font-size: 14px;
-      white-space: nowrap;
       z-index: 1;
     }
     .toolbarLine {
@@ -43,7 +42,6 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットではツールバー非表示 */
     @media (pointer: coarse) {
       .toolbar { display: none !important; }
     }
@@ -62,7 +60,7 @@
       position: relative;
     }
 
-    /* ===== タイトル行 ===== */
+    /* ===== Title row ===== */
     .title {
       display: flex;
       align-items: baseline;
@@ -76,12 +74,13 @@
       white-space: nowrap;
     }
 
-    /* ===== 案内文 ===== */
+    /* ===== Guide text（左右中央） ===== */
     .guideText {
       flex: 1;
       font-size: 10.5pt;
       color: #333;
       line-height: 1.5;
+      text-align: center;   /* ←★ 左右中央 */
     }
 
     /* 通常画面（PC） */
@@ -89,19 +88,19 @@
       content: "ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。";
     }
 
-    /* 通常画面（スマホ／タブレット） */
+    /* 通常画面（スマホ・タブレット） */
     @media (pointer: coarse) {
       .guideText::before {
         content: "ご来場の際は、この画面のQRコードを受付にご提示ください。";
       }
     }
 
-    /* ✅ 印刷プレビュー（A4プレビュー）時の文言 */
+    /* 印刷プレビュー（A4プレビュー） */
     body.a4-preview .guideText::before {
       content: "ご来場の際は、このQRコードを印刷し、受付にご提示ください。";
     }
 
-    /* ✅ 印刷時の文言 */
+    /* 印刷時 */
     @media print {
       .guideText::before {
         content: "ご来場の際は、このQRコードを印刷し、受付にご提示ください。";
