@@ -102,7 +102,7 @@
       .notice .msg--mobile { display: inline; }
     }
 
-    /* ✅ 印刷プレビュー（A4プレビュー：画面）時だけプレビュー文言を表示 */
+    /* ✅ A4プレビュー（画面）時だけプレビュー文言を表示 */
     body.a4-preview .notice .msg--pc { display: none; }
     body.a4-preview .notice .msg--mobile { display: none; }
     body.a4-preview .notice .msg--preview { display: inline; }
@@ -243,8 +243,11 @@
         border-top: 0.3mm solid rgba(0,0,0,.25);
       }
 
-      /* ✅ 印刷時は「印刷用文言」だけを出す */
+      /* ✅ 印刷時は必ず「印刷用文言」だけを出す（a4-previewの影響を完全に上書き） */
       .notice .msg { display: none !important; }
+      .notice .msg--pc { display: none !important; }
+      .notice .msg--mobile { display: none !important; }
+      .notice .msg--preview { display: none !important; }
       .notice .msg--print { display: inline !important; }
     }
 
@@ -306,10 +309,10 @@
           <span class="msg msg--pc">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。</span>
           <!-- スマホ/タブレット初期表示（そのまま） -->
           <span class="msg msg--mobile">ご来場の際は、この画面のQRコードを受付にご提示ください。</span>
-          <!-- ✅ 印刷プレビュー（画面）表示：ここだけ指定文言 -->
-          <span class="msg msg--preview">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。</span>
-          <!-- 印刷時に印字する文言（そのまま） -->
-          <span class="msg msg--print">ご来場の際は、このQRコードを受付にご提示ください。</span>
+          <!-- ✅ 印刷プレビュー（画面）表示（ご指定に修正） -->
+          <span class="msg msg--preview">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷のうえ、ご持参いただき、受付にご提示ください。</span>
+          <!-- ✅ 印刷時に印字する文言（ご指定に修正） -->
+          <span class="msg msg--print">ご来場の際は、このQRコードをご持参いただき、受付にご提示ください。</span>
         </div>
 
         <div class="meta" id="metaLine"></div>
@@ -339,7 +342,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ（正しいscriptタグ） -->
+  <!-- ✅ QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
