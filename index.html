@@ -61,7 +61,7 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
-      position: relative; /* 罫線の重ね描き用 */
+      position: relative; /* 罫線の重ね描き用（重要） */
     }
 
     .title {
@@ -74,40 +74,41 @@
     }
     .title h1 { font-size: 18pt; margin: 0; }
 
-    /* 右側（案内文 + meta） */
     .titleRight {
       display: flex;
       flex-direction: column;
       align-items: flex-end;
       gap: 6px;
       min-width: 0;
+      max-width: 680px;
     }
 
-    /* ===== 案内文（ここで出し分け） ===== */
+    /* ===== 案内文（出し分け） ===== */
     .notice {
       font-size: 10.5pt;
       color: #333;
       text-align: right;
       line-height: 1.35;
       word-break: break-word;
-      max-width: 680px;
     }
-    .notice .msg { display: none; }              /* まず全部隠す */
-    .notice .msg--pc { display: inline; }        /* PC通常表示のみ出す（デフォルト） */
+    .notice .msg { display: none; }
 
-    /* スマホ/タブレット：モバイル文言を表示 */
+    /* PC初期表示（デフォルト） */
+    .notice .msg--pc { display: inline; }
+
+    /* スマホ/タブレットは mobile 文言を最優先（a4-previewが付いても勝つ） */
     @media (pointer: coarse) {
-      .notice { font-size: 11.5pt; max-width: none; }
-      .notice .msg--pc { display: none; }
-      .notice .msg--mobile { display: inline; }
+      .notice .msg { display: none !important; }
+      .notice .msg--mobile { display: inline !important; }
     }
 
-    /* ✅ A4プレビュー（画面）時だけプレビュー文言を表示 */
-    body.a4-preview .notice .msg--pc { display: none; }
-    body.a4-preview .notice .msg--mobile { display: none; }
+    /* ✅ 印刷プレビュー（画面）＝ PC のみプレビュー文言 */
+    body.a4-preview .notice .msg { display: none; }
     body.a4-preview .notice .msg--preview { display: inline; }
 
-    .title .meta {
+    /* ※ただしスマホ/タブレットは上の @media(pointer:coarse) が !important で勝つ */
+
+    .meta {
       font-size: 10.5pt;
       color: #333;
       word-break: break-all;
@@ -143,7 +144,7 @@
       width: 100%;
     }
     .qrBox--two {
-      width: 80mm;      /* 2マス（左上/右上）に収まるよう固定 */
+      width: 80mm;
       padding: 5mm;
     }
 
@@ -178,7 +179,7 @@
     body.a4-preview .qrArea--one { display: none; }
     body.a4-preview .qrArea--two { display: grid; }
 
-    /* =====★ A4プレビュー中（画面）に十字罫線（薄い実線・背景不使用） ===== */
+    /* =====★ A4プレビュー中（画面）の十字罫線（薄い実線） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
       content: "";
@@ -222,7 +223,11 @@
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
 
-      /* =====★ 印刷時の十字罫線（薄い実線・背景不使用） ===== */
+      /* ✅ 印刷時は print 文言だけ（a4-previewの影響を完全に上書き） */
+      .notice .msg { display: none !important; }
+      .notice .msg--print { display: inline !important; }
+
+      /* =====★ 印刷時の十字罫線（薄い実線） ===== */
       .page::before,
       .page::after {
         content: "";
@@ -242,22 +247,10 @@
         transform: translateY(-0.15mm);
         border-top: 0.3mm solid rgba(0,0,0,.25);
       }
-
-      /* ✅ 印刷時は必ず「印刷用文言」だけを出す（a4-previewの影響を完全に上書き） */
-      .notice .msg { display: none !important; }
-      .notice .msg--pc { display: none !important; }
-      .notice .msg--mobile { display: none !important; }
-      .notice .msg--preview { display: none !important; }
-      .notice .msg--print { display: inline !important; }
     }
 
-    /* =========================================================
-       ✅ 追加要件：スマホ/タブレット表示時
-       - QRを画面の約80%で表示
-       - 上下左右中央に表示
-       ========================================================= */
+    /* ===== スマホ/タブレット表示（QR 80%・中央寄せ） ===== */
     @media (pointer: coarse) {
-      /* スマホは「印刷用ページ」ではなく「閲覧用」なのでフル画面寄せ */
       .page {
         width: 100vw;
         min-height: 100vh;
@@ -267,12 +260,9 @@
         padding: 12px;
         gap: 12px;
       }
-
-      /* タイトル・フッターを少し詰める（残す） */
       .title { padding-bottom: 10px; }
       .footer { padding-top: 10px; }
 
-      /* タイトル・フッター以外の領域を使って中央寄せ */
       .qrArea--one {
         flex: 1;
         min-height: 0;
@@ -280,12 +270,10 @@
         align-items: center;
         justify-content: center;
       }
-
-      /* QRを“画面短辺の80%相当”に（縦横中央） */
       .qrBox--one {
-        width: 80vmin;     /* 画面の短辺基準で80% */
+        width: 80vmin;
         max-width: 80vmin;
-        padding: 0;        /* 余白は最小にして大きく */
+        padding: 0;
       }
     }
   </style>
@@ -302,17 +290,27 @@
     <div class="title">
       <h1>QRコード</h1>
 
-      <!-- ✅ 右側：案内文 + meta -->
       <div class="titleRight">
         <div class="notice" aria-live="polite">
-          <!-- PC初期表示（そのまま） -->
-          <span class="msg msg--pc">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。</span>
-          <!-- スマホ/タブレット初期表示（そのまま） -->
-          <span class="msg msg--mobile">ご来場の際は、この画面のQRコードを受付にご提示ください。</span>
-          <!-- ✅ 印刷プレビュー（画面）表示（ご指定に修正） -->
-          <span class="msg msg--preview">ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷のうえ、ご持参いただき、受付にご提示ください。</span>
-          <!-- ✅ 印刷時に印字する文言（ご指定に修正） -->
-          <span class="msg msg--print">ご来場の際は、このQRコードをご持参いただき、受付にご提示ください。</span>
+          <!-- PC初期表示 -->
+          <span class="msg msg--pc">
+            ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。
+          </span>
+
+          <!-- スマホ/タブレット初期表示 -->
+          <span class="msg msg--mobile">
+            ご来場の際は、この画面のQRコードを受付にご提示ください。
+          </span>
+
+          <!-- 印刷プレビュー（画面・PCのみ） -->
+          <span class="msg msg--preview">
+            ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷のうえ、ご持参いただき、受付にご提示ください。
+          </span>
+
+          <!-- 印刷時に印字する文言 -->
+          <span class="msg msg--print">
+            ご来場の際は、このQRコードをご持参いただき、受付にご提示ください。
+          </span>
         </div>
 
         <div class="meta" id="metaLine"></div>
@@ -342,7 +340,7 @@
     </div>
   </section>
 
-  <!-- ✅ QRコード生成ライブラリ -->
+  <!-- ✅ QRコード生成ライブラリ（正しいscriptタグ） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -386,7 +384,7 @@
 
         const width = computeQrWidthPx(box);
 
-        // ✅ Android対策：レイアウト確定前（width=0等）なら次フレームで再試行
+        // Android対策：レイアウト確定前（width=0等）なら次フレームで再試行
         if (!width || width <= 0) {
           requestAnimationFrame(() => renderTo(canvasId, boxId));
           return;
@@ -406,7 +404,7 @@
         renderTo("qrCanvasRight", "qrBoxRight");
       }
 
-      // ✅ 初回描画：2フレーム待ち（Androidの幅0事故を避ける）
+      // 初回描画：2フレーム待ち
       requestAnimationFrame(() => requestAnimationFrame(renderAllQrs));
 
       // リサイズは間引き
@@ -417,7 +415,7 @@
       }
       window.addEventListener("resize", scheduleRender);
 
-      // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
+      // 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す
       const printBtn = document.getElementById("printBtn");
 
       function enableA4Preview() {
