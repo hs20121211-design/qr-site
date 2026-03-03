@@ -13,7 +13,7 @@
       color: #111;
     }
 
-    /* ===== Toolbar（上部：個人情報はここだけ） ===== */
+    /* ===== Toolbar（画面表示のみ） ===== */
     .toolbar {
       max-width: 1100px;
       margin: 16px auto;
@@ -30,7 +30,6 @@
       padding: 10px 14px;
       cursor: pointer;
       font-size: 14px;
-      white-space: nowrap;
       z-index: 1;
     }
     .toolbarLine {
@@ -43,54 +42,35 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットではツールバー自体を非表示（＝個人情報も出ない） */
     @media (pointer: coarse) {
       .toolbar { display: none !important; }
     }
 
-    /* ===== Page：初期表示はA4固定にしない（レスポンシブ） ===== */
+    /* ===== Page ===== */
     .page {
       width: min(1100px, 96vw);
-      height: auto;
       margin: 12px auto 24px;
       background: #fff;
       box-shadow: 0 6px 24px rgba(0,0,0,.12);
       border-radius: 10px;
-      box-sizing: border-box;
-      padding: 24px; /* 画面用 */
+      padding: 24px;
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
-      position: relative; /* 罫線の重ね描き用 */
+      position: relative;
     }
 
     .title {
       display: flex;
-      align-items: baseline;
       justify-content: space-between;
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
     }
-    .title h1 { font-size: 18pt; margin: 0; }
-    .title .meta {
-      font-size: 10.5pt;
-      color: #333;
-      word-break: break-all;
-    }
+    .title h1 { margin: 0; font-size: 18pt; }
+    .title .meta { font-size: 10.5pt; color: #333; }
 
-    /* ===== QR：共通 ===== */
-    .qrArea {
-      width: 100%;
-    }
-
-    /* 通常画面：中央1つ */
+    /* ===== QR ===== */
     .qrArea--one {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-    .qrBox {
-      box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -100,93 +80,67 @@
       padding: 12px;
     }
 
-    /* 印刷・A4プレビュー用：左上/右上に2つ */
     .qrArea--two {
-      display: none; /* 通常は隠す */
+      display: none;
       grid-template-columns: 1fr 1fr;
       gap: 10mm;
-      align-items: start;
       justify-items: center;
-      width: 100%;
     }
     .qrBox--two {
-      width: 80mm;      /* 2マス（左上/右上）に収まるよう固定 */
+      width: 80mm;
       padding: 5mm;
     }
 
-    canvas {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+    canvas { width: 100%; display: block; }
 
-    /* フッター（個人情報は一切出さない） */
     .footer {
       border-top: 1px solid #e5e5e5;
       padding-top: 16px;
       font-size: 10pt;
-      color: #444;
       display: flex;
       justify-content: space-between;
-      gap: 12px;
     }
 
-    /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
+    /* ===== A4プレビュー ===== */
     body.a4-preview .page {
       width: 210mm;
       height: 297mm;
       padding: 15mm;
       gap: 10mm;
     }
-    body.a4-preview .title { padding-bottom: 6mm; }
-    body.a4-preview .footer { padding-top: 6mm; }
-
-    /* A4プレビュー時：中央1つを隠し、2つ表示 */
     body.a4-preview .qrArea--one { display: none; }
     body.a4-preview .qrArea--two { display: grid; }
 
-    /* =====★ A4プレビュー中（画面）に十字罫線（破線・薄め） ===== */
+    /* ===== 十字罫線（薄い実線・背景不使用） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
       content: "";
       position: absolute;
       pointer-events: none;
-      z-index: 5;
+      z-index: 9999;
     }
 
     body.a4-preview .page::before {
       top: 0; bottom: 0;
       left: 50%;
-      width: 0.4mm;
-      transform: translateX(-0.2mm);
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0,0,0,.18) 0,
-        rgba(0,0,0,.18) 3mm,
-        transparent 3mm,
-        transparent 6mm
-      );
+      transform: translateX(-0.15mm);
+      border-left: 0.3mm solid rgba(0,0,0,.2);
     }
 
     body.a4-preview .page::after {
       left: 0; right: 0;
       top: 50%;
-      height: 0.4mm;
-      transform: translateY(-0.2mm);
-      background: repeating-linear-gradient(
-        to right,
-        rgba(0,0,0,.18) 0,
-        rgba(0,0,0,.18) 3mm,
-        transparent 3mm,
-        transparent 6mm
-      );
+      transform: translateY(-0.15mm);
+      border-top: 0.3mm solid rgba(0,0,0,.2);
     }
 
-    /* ===== 印刷（A4） ===== */
+    /* ===== 印刷 ===== */
     @page { size: A4; margin: 0; }
 
     @media print {
       .no-print { display: none !important; }
+
+      body { background: #fff; }
 
       .page {
         width: 210mm;
@@ -196,16 +150,11 @@
         box-shadow: none;
         padding: 15mm;
         gap: 10mm;
-        position: relative;
       }
 
-      body { background: #fff; }
-
-      /* 印刷時：中央1つを隠し、2つ表示 */
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
 
-      /* =====★ 印刷プレビュー/印刷の十字罫線（破線・薄め） ===== */
       .page::before,
       .page::after {
         content: "";
@@ -217,62 +166,41 @@
       .page::before {
         top: 0; bottom: 0;
         left: 50%;
-        width: 0.4mm;
-        transform: translateX(-0.2mm);
-        background: repeating-linear-gradient(
-          to bottom,
-          rgba(0,0,0,.22) 0,
-          rgba(0,0,0,.22) 3mm,
-          transparent 3mm,
-          transparent 6mm
-        );
+        transform: translateX(-0.15mm);
+        border-left: 0.3mm solid rgba(0,0,0,.25);
       }
 
       .page::after {
         left: 0; right: 0;
         top: 50%;
-        height: 0.4mm;
-        transform: translateY(-0.2mm);
-        background: repeating-linear-gradient(
-          to right,
-          rgba(0,0,0,.22) 0,
-          rgba(0,0,0,.22) 3mm,
-          transparent 3mm,
-          transparent 6mm
-        );
+        transform: translateY(-0.15mm);
+        border-top: 0.3mm solid rgba(0,0,0,.25);
       }
     }
   </style>
 </head>
 
 <body>
-  <!-- 上部（画面表示のみ：個人情報はここだけ） -->
   <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
   </div>
 
-  <section class="page" id="page">
+  <section class="page">
     <div class="title">
       <h1>QRコード</h1>
       <div class="meta" id="metaLine"></div>
     </div>
 
-    <!-- 通常画面：中央1つ -->
-    <div class="qrArea qrArea--one">
-      <div class="qrBox qrBox--one" id="qrBoxOne">
+    <div class="qrArea--one">
+      <div class="qrBox--one">
         <canvas id="qrCanvasOne"></canvas>
       </div>
     </div>
 
-    <!-- 印刷/A4プレビュー：左上・右上に同じQRを2つ -->
-    <div class="qrArea qrArea--two" id="qrAreaTwo">
-      <div class="qrBox qrBox--two" id="qrBoxLeft">
-        <canvas id="qrCanvasLeft"></canvas>
-      </div>
-      <div class="qrBox qrBox--two" id="qrBoxRight">
-        <canvas id="qrCanvasRight"></canvas>
-      </div>
+    <div class="qrArea--two">
+      <div class="qrBox--two"><canvas id="qrCanvasLeft"></canvas></div>
+      <div class="qrBox--two"><canvas id="qrCanvasRight"></canvas></div>
     </div>
 
     <div class="footer">
@@ -281,93 +209,47 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
-
   <script>
     const params = new URLSearchParams(location.search);
-
-    // 個人情報（上部のみ表示）
-    const k = params.get("k") ?? "";
-    const b = params.get("b") ?? "";
-    const y = params.get("y") ?? "";
-    const n = params.get("n") ?? "";
-
-    // QRの中身（uのみ）
     const payload = params.get("u") ?? "";
 
-    // （表示用）未指定時の置換
-    const v = (s) => (s && s.trim()) ? s : "（未指定）";
-
-    // 上部ツールバー中央：個人情報を表示（画面のみ）
     document.getElementById("toolbarLine").textContent =
-      `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
+      `会社名：${params.get("k") ?? "（未指定）"} ／ お名前：${params.get("n") ?? "（未指定）"} 様`;
 
-    // メタ・フッター（個人情報なし）
-    const ecc = "M";
-    document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
+    document.getElementById("metaLine").textContent = "ecc=M / responsive";
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ===== QRをそれぞれのボックス幅に合わせて描画 =====
-    function computeQrWidthPx(box) {
-      const w = Math.floor(box.getBoundingClientRect().width);
-      const clamped = Math.max(160, Math.min(w, 1100));
-      return clamped - (clamped % 2);
-    }
-
-    function renderTo(canvasId, boxId) {
+    function render(canvasId) {
       const canvas = document.getElementById(canvasId);
-      const box = document.getElementById(boxId);
-      if (!canvas || !box) return;
-
-      const width = computeQrWidthPx(box);
-      QRCode.toCanvas(
-        canvas,
-        payload || "（u が指定されていません）",
-        { width, margin: 2, errorCorrectionLevel: ecc },
-        (err) => { if (err) console.error(err); }
-      );
+      if (!canvas) return;
+      QRCode.toCanvas(canvas, payload || "（u未指定）", {
+        width: canvas.parentElement.clientWidth,
+        margin: 2,
+        errorCorrectionLevel: "M"
+      });
     }
 
-    function renderAllQrs() {
-      renderTo("qrCanvasOne", "qrBoxOne");     // 通常画面
-      renderTo("qrCanvasLeft", "qrBoxLeft");   // 印刷/A4プレビュー左
-      renderTo("qrCanvasRight", "qrBoxRight"); // 印刷/A4プレビュー右
+    function renderAll() {
+      render("qrCanvasOne");
+      render("qrCanvasLeft");
+      render("qrCanvasRight");
     }
 
-    // リサイズは間引き
-    let t = 0;
-    function scheduleRender() {
-      clearTimeout(t);
-      t = setTimeout(renderAllQrs, 120);
-    }
-    window.addEventListener("resize", scheduleRender);
+    renderAll();
+    window.addEventListener("resize", () => setTimeout(renderAll, 100));
 
-    // 初回描画
-    renderAllQrs();
-
-    // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
-    const printBtn = document.getElementById("printBtn");
-
-    function enableA4Preview() {
+    document.getElementById("printBtn").onclick = () => {
       document.body.classList.add("a4-preview");
-      renderAllQrs(); // サイズが変わるので再描画
-    }
-    function disableA4Preview() {
-      document.body.classList.remove("a4-preview");
-      renderAllQrs();
-    }
+      renderAll();
+      window.print();
+    };
 
     window.addEventListener("afterprint", () => {
-      disableA4Preview();
+      document.body.classList.remove("a4-preview");
+      renderAll();
     });
 
-    printBtn.addEventListener("click", () => {
-      enableA4Preview();
-      window.print();
-    });
-
-    // URL引数を非表示（履歴を汚さない）
     if (location.search) {
       history.replaceState(null, document.title, location.pathname);
     }
