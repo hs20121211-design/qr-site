@@ -1,180 +1,287 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QR印刷（A4）</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QR印刷（A4）</title>
 
-<style>
-body{
-  margin:0;
-  background:#f2f2f2;
-  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
-}
+  <style>
+    body{
+      margin:0;
+      background:#f2f2f2;
+      font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+      color:#111;
+    }
 
-/* ===== Toolbar（画面のみ） ===== */
-.toolbar{
-  max-width:1100px;
-  margin:16px auto;
-  padding:0 16px;
-  position:relative;
-  height:44px;
-  display:flex;
-  align-items:center;
-}
-.toolbar button{
-  border:1px solid #ccc;
-  background:#fff;
-  border-radius:10px;
-  padding:10px 14px;
-  cursor:pointer;
-}
-.toolbarLine{
-  position:absolute;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  white-space:nowrap;
-}
-@media (pointer:coarse){
-  .toolbar{display:none!important;}
-}
+    /* ===== Toolbar（画面のみ：個人情報） ===== */
+    .toolbar{
+      max-width:1100px;
+      margin:16px auto;
+      padding:0 16px;
+      position:relative;
+      height:44px;
+      display:flex;
+      align-items:center;
+    }
+    .toolbar button{
+      border:1px solid #ccc;
+      background:#fff;
+      border-radius:10px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-size:14px;
+      white-space:nowrap;
+      z-index:1;
+    }
+    .toolbarLine{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-50%);
+      font-size:14px;
+      white-space:nowrap;
+      pointer-events:none;
+    }
 
-/* ===== 画面表示 ===== */
-.page{
-  width:min(1100px,96vw);
-  margin:12px auto;
-  background:#fff;
-  padding:24px;
-  border-radius:10px;
-  box-shadow:0 6px 24px rgba(0,0,0,.12);
-}
-.previewQr{
-  max-width:520px;
-  margin:0 auto;
-}
-canvas{width:100%;height:auto;}
+    /* スマホ・タブレットはツールバー非表示 */
+    @media (pointer:coarse){
+      .toolbar{ display:none !important; }
+    }
 
-/* ===== 印刷設定 ===== */
-@page{size:A4;margin:0;}
+    /* ===== 画面：最初はA4にしない（レスポンシブ） ===== */
+    .page{
+      width:min(1100px,96vw);
+      margin:12px auto 24px;
+      background:#fff;
+      border-radius:10px;
+      box-shadow:0 6px 24px rgba(0,0,0,.12);
+      box-sizing:border-box;
+      padding:24px;
+    }
+    .screenHeader{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      border-bottom:1px solid #e5e5e5;
+      padding-bottom:12px;
+      margin-bottom:18px;
+      gap:12px;
+    }
+    .screenHeader h1{ margin:0; font-size:18pt; }
+    .screenHeader .meta{
+      font-size:10.5pt;
+      color:#333;
+      word-break:break-all;
+      text-align:right;
+    }
 
-@media print{
-  .no-print{display:none!important;}
-  body{background:#fff;}
+    /* 画面プレビュー（1つだけ） */
+    .screenPreview{
+      display:flex;
+      justify-content:center;
+      padding:8px 0 0;
+    }
+    .screenPreview .holder{
+      width:min(520px,90vw);
+      aspect-ratio:1/1;            /* 画面でも正方形 */
+      max-width:520px;
+      max-height:520px;
+    }
+    canvas{ width:100%; height:100%; display:block; }
 
-  .page{
-    width:210mm;
-    height:297mm;
-    margin:0;
-    padding:0;
-    border-radius:0;
-    box-shadow:none;
-    position:relative;
-  }
+    .footer{
+      border-top:1px solid #e5e5e5;
+      padding-top:12px;
+      margin-top:18px;
+      font-size:10pt;
+      color:#444;
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+    }
 
-  /* === 折り目点線（必ず表示） === */
-  .fold-lines{
-    position:absolute;
-    inset:0;
-    pointer-events:none;
-    z-index:1;
+    /* 画面では印刷用レイヤーを隠す */
+    .print-only{ display:none; }
 
-    --c: rgba(0,0,0,0.25);
-    --gap: 2.2mm;
-    --dot: 0.6mm;
-    --w: 0.25mm;
+    /* ===== ボタン押下時のみ：画面でA4プレビュー（任意） ===== */
+    body.a4-preview .page{
+      width:210mm;
+      height:297mm;
+      padding:0;
+      border-radius:10px;
+    }
+    body.a4-preview .screenHeader,
+    body.a4-preview .screenPreview,
+    body.a4-preview .footer{
+      display:none !important;
+    }
+    body.a4-preview .print-only{
+      display:block;
+    }
 
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        transparent 0,
-        transparent var(--gap),
-        var(--c) var(--gap),
-        var(--c) calc(var(--gap) + var(--dot))
-      ),
-      repeating-linear-gradient(
-        to right,
-        transparent 0,
-        transparent var(--gap),
-        var(--c) var(--gap),
-        var(--c) calc(var(--gap) + var(--dot))
-      );
+    /* ===== 印刷（A4） ===== */
+    @page { size: A4; margin: 0; }
 
-    background-size: var(--w) 100%, 100% var(--w);
-    background-position: 50% 0, 0 50%;
-    background-repeat:no-repeat;
-  }
+    @media print{
+      .no-print{ display:none !important; }
+      body{ background:#fff; }
 
-  /* === 2×2 グリッド === */
-  .qrGrid{
-    position:absolute;
-    inset:0;
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    grid-template-rows:1fr 1fr;
-    z-index:2; /* 点線の上 */
-  }
+      /* 画面用は印刷で消す */
+      .screenHeader, .screenPreview, .footer{ display:none !important; }
 
-  .cell{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-  }
+      .page{
+        width:210mm;
+        height:297mm;
+        margin:0;
+        padding:0;
+        border-radius:0;
+        box-shadow:none;
+        position:relative;
+      }
+      .print-only{ display:block !important; }
 
-  /* 上段のみQR */
-  .cell.top canvas{
-    width:80mm;
-    max-width:80mm;
-    height:auto;
-  }
-}
-</style>
+      /* 4分割グリッド（2×2） */
+      .grid{
+        position:absolute;
+        inset:0;
+        display:grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        z-index:2;
+      }
+      .cell{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+      }
+
+      /* QRは上段のみ（正方形ホルダーに固定） */
+      .qr-holder{
+        width:80mm;
+        height:80mm;               /* ★ここで正方形固定 → 縦長化を防ぐ */
+      }
+      .cell.bottom .qr-holder{ display:none; } /* 下段は空 */
+
+      /* SVG折り目線（薄い点線） */
+      .fold-svg{
+        position:absolute;
+        inset:0;
+        z-index:3;                 /* QRの上でもOK（薄いので邪魔しにくい） */
+        pointer-events:none;
+      }
+    }
+  </style>
 </head>
 
 <body>
-
-<div class="toolbar no-print">
-  <button onclick="window.print()">A4で印刷</button>
-  <div class="toolbarLine" id="toolbarLine"></div>
-</div>
-
-<section class="page">
-
-  <!-- 画面プレビュー用QR -->
-  <div class="previewQr no-print">
-    <canvas id="qrPreview"></canvas>
+  <!-- 上部（画面表示のみ） -->
+  <div class="toolbar no-print">
+    <button id="printBtn">A4で印刷</button>
+    <div class="toolbarLine" id="toolbarLine"></div>
   </div>
 
-  <!-- 印刷用 -->
-  <div class="fold-lines"></div>
+  <section class="page" id="page">
+    <!-- 画面用 -->
+    <div class="screenHeader">
+      <h1>QRコード</h1>
+      <div class="meta" id="metaLine"></div>
+    </div>
 
-  <div class="qrGrid">
-    <div class="cell top"><canvas id="qrTL"></canvas></div>
-    <div class="cell top"><canvas id="qrTR"></canvas></div>
-    <div class="cell"></div>
-    <div class="cell"></div>
-  </div>
+    <div class="screenPreview">
+      <div class="holder">
+        <canvas id="qrPreview"></canvas>
+      </div>
+    </div>
 
-</section>
+    <div class="footer">
+      <div>Generated by GitHub Pages</div>
+      <div id="footerInfo"></div>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
-<script>
-const params=new URLSearchParams(location.search);
-const u=params.get("u")||"https://example.com";
+    <!-- 印刷用（A4 4分割 / 上2マスにQR） -->
+    <div class="print-only">
+      <!-- 折り目線は background ではなく SVG（コンテンツ）で描く -->
+      <svg class="fold-svg" viewBox="0 0 210 297" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- 縦中央 x=105 / 横中央 y=148.5 -->
+        <line x1="105" y1="0" x2="105" y2="297"
+              stroke="rgba(0,0,0,0.22)" stroke-width="0.35"
+              stroke-dasharray="1.2 2.2" />
+        <line x1="0" y1="148.5" x2="210" y2="148.5"
+              stroke="rgba(0,0,0,0.22)" stroke-width="0.35"
+              stroke-dasharray="1.2 2.2" />
+      </svg>
 
-const make=(c,w)=>QRCode.toCanvas(c,u,{width:w,margin:2});
+      <div class="grid">
+        <div class="cell top">
+          <div class="qr-holder"><canvas id="qrTL"></canvas></div>
+        </div>
+        <div class="cell top">
+          <div class="qr-holder"><canvas id="qrTR"></canvas></div>
+        </div>
+        <div class="cell bottom"></div>
+        <div class="cell bottom"></div>
+      </div>
+    </div>
+  </section>
 
-make(document.getElementById("qrPreview"),480);
-make(document.getElementById("qrTL"),600);
-make(document.getElementById("qrTR"),600);
+  <!-- QR生成ライブラリ（正しいscriptタグ） -->
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
-document.getElementById("toolbarLine").textContent=
-  `会社名：${params.get("k")||"（未指定）"} ／ お名前：${params.get("n")||""} 様`;
+  <script>
+    const params = new URLSearchParams(location.search);
 
-if(location.search){
-  history.replaceState(null,document.title,location.pathname);
-}
-</script>
+    // 個人情報（画面上部のみ表示）
+    const k = params.get("k") ?? "";
+    const b = params.get("b") ?? "";
+    const y = params.get("y") ?? "";
+    const n = params.get("n") ?? "";
 
+    // QRの中身（uのみ）
+    const payload = params.get("u") ?? "";
+
+    const v = (s) => (s && s.trim()) ? s : "（未指定）";
+
+    document.getElementById("toolbarLine").textContent =
+      `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
+
+    const ecc = "M";
+    document.getElementById("metaLine").textContent = `ecc=${ecc}`;
+    document.getElementById("footerInfo").textContent = new Date().toLocaleString();
+
+    // QR描画（canvasはCSSで正方形ホルダーに収める）
+    function draw(canvas, sizePx){
+      QRCode.toCanvas(
+        canvas,
+        payload || "（u が指定されていません）",
+        { width: sizePx, margin: 2, errorCorrectionLevel: ecc },
+        (err) => { if (err) console.error(err); }
+      );
+    }
+
+    // 画面プレビュー
+    draw(document.getElementById("qrPreview"), 640);
+
+    // 印刷用：上2マス（同じQRを2つ）
+    draw(document.getElementById("qrTL"), 900);
+    draw(document.getElementById("qrTR"), 900);
+
+    // 印刷ボタン：クリック時だけA4プレビューに切替 → 印刷 → 戻す
+    const printBtn = document.getElementById("printBtn");
+    function enableA4Preview(){ document.body.classList.add("a4-preview"); }
+    function disableA4Preview(){ document.body.classList.remove("a4-preview"); }
+
+    window.addEventListener("beforeprint", enableA4Preview);
+    window.addEventListener("afterprint", disableA4Preview);
+
+    printBtn.addEventListener("click", () => {
+      enableA4Preview();
+      window.print();
+    });
+
+    // URL引数を非表示（履歴を汚さない）
+    if (location.search) {
+      history.replaceState(null, document.title, location.pathname);
+    }
+  </script>
 </body>
 </html>
