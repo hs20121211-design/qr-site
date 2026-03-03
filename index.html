@@ -50,7 +50,6 @@
 
     /* ===== Page：初期表示はA4固定にしない（レスポンシブ） ===== */
     .page {
-      /* 画面ではA4にしない：幅は画面に合わせる */
       width: min(1100px, 96vw);
       height: auto;
       margin: 12px auto 24px;
@@ -62,6 +61,7 @@
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
+      position: relative; /* 罫線の重ね描き用 */
     }
 
     .title {
@@ -71,10 +71,7 @@
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
     }
-    .title h1 {
-      font-size: 18pt;
-      margin: 0;
-    }
+    .title h1 { font-size: 18pt; margin: 0; }
     .title .meta {
       font-size: 10.5pt;
       color: #333;
@@ -88,7 +85,6 @@
       align-items: center;
     }
     .qrBox {
-      /* 画面では可変。A4プレビュー時は下で上書き */
       width: min(520px, 90vw);
       padding: 12px;
       box-sizing: border-box;
@@ -114,31 +110,44 @@
     }
 
     /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
-    body.a4-preview {
-      background: #f2f2f2;
-    }
     body.a4-preview .page {
       width: 210mm;
       height: 297mm;
       padding: 15mm;
       gap: 10mm;
-      border-radius: 10px;
-      /* A4プレビュー時の“紙っぽさ”は既存の影でOK */
     }
-    body.a4-preview .title {
-      padding-bottom: 6mm;
-    }
-    body.a4-preview .footer {
-      padding-top: 6mm;
-    }
+    body.a4-preview .title { padding-bottom: 6mm; }
+    body.a4-preview .footer { padding-top: 6mm; }
     body.a4-preview .qrBox {
-      /* A4に合わせてQR枠サイズも固定寄りに */
       width: 120mm;
       padding: 10mm;
     }
 
+    /* =====★ A4プレビュー中（画面）に十字罫線を表示（任意：見たい場合） ===== */
+    body.a4-preview .page::before,
+    body.a4-preview .page::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      z-index: 5;
+    }
+    /* 縦罫線 */
+    body.a4-preview .page::before {
+      top: 0; bottom: 0;
+      left: 50%;
+      border-left: 0.3mm solid rgba(0,0,0,.45);
+      transform: translateX(-0.15mm);
+    }
+    /* 横罫線 */
+    body.a4-preview .page::after {
+      left: 0; right: 0;
+      top: 50%;
+      border-top: 0.3mm solid rgba(0,0,0,.45);
+      transform: translateY(-0.15mm);
+    }
+
     /* ===== 印刷（A4） ===== */
-    @page { size: A4; margin: 0; }
+    @page { size: A4; margin: 0; } /* 印刷時の用紙設定 [1](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing) */
 
     @media print {
       /* 印刷時：個人情報を含むUIは非表示 */
@@ -153,12 +162,36 @@
         box-shadow: none;
         padding: 15mm;
         gap: 10mm;
+        position: relative; /* 罫線の基準 */
       }
       .qrBox {
         width: 120mm;
         padding: 10mm;
       }
       body { background: #fff; }
+
+      /* =====★ 印刷プレビューでA4縦横中央に十字罫線（4マス） ===== */
+      .page::before,
+      .page::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+        z-index: 9999; /* 文字やQRの上に線を出したい場合 */
+      }
+      /* 縦罫線：ページの真ん中 */
+      .page::before {
+        top: 0; bottom: 0;
+        left: 50%;
+        border-left: 0.3mm solid #000; /* 罫線の太さ・色（好みで調整） */
+        transform: translateX(-0.15mm);
+      }
+      /* 横罫線：ページの真ん中 */
+      .page::after {
+        left: 0; right: 0;
+        top: 50%;
+        border-top: 0.3mm solid #000;
+        transform: translateY(-0.15mm);
+      }
     }
   </style>
 </head>
@@ -170,7 +203,7 @@
     <div class="toolbarLine" id="toolbarLine"></div>
   </div>
 
-  <section class="page">
+  <section class="page" id="page">
     <div class="title">
       <h1>QRコード</h1>
       <div class="meta" id="metaLine"></div>
@@ -188,7 +221,7 @@
     </div>
   </section>
 
-  <!-- QRコード生成ライブラリ（※正しい script タグ） -->
+  <!-- QRコード生成ライブラリ（正しいscriptタグ） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
@@ -215,19 +248,19 @@
     document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
     document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-    // ===== QRを表示サイズに合わせて再描画（widthオプション使用） =====
+    // ===== QRを表示サイズに合わせて再描画（widthオプション） =====
     const canvas = document.getElementById("qrCanvas");
     const box = document.getElementById("qrBox");
 
     function computeQrWidthPx() {
       const w = Math.floor(box.getBoundingClientRect().width);
-      const clamped = Math.max(160, Math.min(w, 900));
+      const clamped = Math.max(160, Math.min(w, 1100));
       return clamped - (clamped % 2);
     }
 
     function renderQr() {
       const width = computeQrWidthPx();
-      // width オプションでキャンバスへ描画できる[2](https://www.npmjs.com/package/qrcode/v/1.4.4)
+      // QRCode.toCanvas は width オプションで描画サイズを指定できる pmjs.com/package/qrcode/v/1.4.4)
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
@@ -247,20 +280,19 @@
     // 初回描画
     renderQr();
 
-    // ===== 「A4で印刷」クリック時だけA4プレビューに切替 → 印刷 → 戻す =====
+    // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
     const printBtn = document.getElementById("printBtn");
 
     function enableA4Preview() {
       document.body.classList.add("a4-preview");
-      // サイズが変わるのでQRも再描画
-      renderQr();
+      renderQr(); // サイズが変わるので再描画
     }
     function disableA4Preview() {
       document.body.classList.remove("a4-preview");
       renderQr();
     }
 
-    // 印刷/プレビュー終了後に元へ戻す（afterprint）[1](https://developer.mozilla.org/en-US/docs/Web/API/Window/afterprint_event)
+    // 印刷/プレビュー終了後に元へ戻す（afterprint） [2](https://developer.mozilla.org/en-US/docs/Web/API/Window/afterprint_event)
     window.addEventListener("afterprint", () => {
       disableA4Preview();
     });
@@ -268,11 +300,9 @@
     printBtn.addEventListener("click", () => {
       enableA4Preview();
       window.print();
-      // ※ afterprint で戻します
     });
 
     // URL引数を非表示（履歴を汚さない）
-    // replaceState は現在の履歴エントリのURLを置きeveloper.mozilla.org/en-US/docs/Web/API/History/replaceState)
     if (location.search) {
       history.replaceState(null, document.title, location.pathname);
     }
