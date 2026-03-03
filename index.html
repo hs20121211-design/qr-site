@@ -13,7 +13,7 @@
       color: #111;
     }
 
-    /* ===== Toolbar（PCのみ） ===== */
+    /* ===== Toolbar（上部：個人情報はここだけ） ===== */
     .toolbar {
       max-width: 1100px;
       margin: 16px auto;
@@ -30,6 +30,7 @@
       padding: 10px 14px;
       cursor: pointer;
       font-size: 14px;
+      white-space: nowrap;
       z-index: 1;
     }
     .toolbarLine {
@@ -42,70 +43,82 @@
       pointer-events: none;
     }
 
-    /* スマホ・タブレットでは非表示 */
+    /* スマホ・タブレットではツールバー自体を非表示（＝個人情報も出ない） */
     @media (pointer: coarse) {
       .toolbar { display: none !important; }
     }
 
-    /* ===== Page ===== */
+    /* ===== Page：初期表示はA4固定にしない（レスポンシブ） ===== */
     .page {
       width: min(1100px, 96vw);
+      height: auto;
       margin: 12px auto 24px;
       background: #fff;
       box-shadow: 0 6px 24px rgba(0,0,0,.12);
       border-radius: 10px;
-      padding: 24px;
+      box-sizing: border-box;
+      padding: 24px; /* 画面用 */
       display: grid;
       grid-template-rows: auto 1fr auto;
       gap: 24px;
-      position: relative;
+      position: relative; /* 罫線の重ね描き用 */
     }
 
-    /* ===== Title ===== */
+    /* ===== タイトル行 ===== */
     .title {
       display: flex;
       align-items: baseline;
-      justify-content: space-between;
-      gap: 12px;
+      justify-content: flex-start;   /* 追加：左寄せ */
       border-bottom: 1px solid #e5e5e5;
       padding-bottom: 16px;
+      gap: 12px;                    /* 追加：要素間余白 */
     }
     .title h1 {
       font-size: 18pt;
       margin: 0;
-      white-space: nowrap;
+      white-space: nowrap;          /* 追加：QRコードが改行されない */
     }
 
-    /* 案内文 */
+    /* ===== ✅ 追加：見出し右の案内文（PC/スマホで出し分け） ===== */
     .guideText {
-      font-size: 11pt;
-      color: #333;
-      line-height: 1.4;
-      flex: 1;
-    }
-    .guide-pc { display: inline; }
-    .guide-mobile { display: none; }
-
-    /* スマホ／タブレットでは文言切替 */
-    @media (pointer: coarse) {
-      .guide-pc { display: none; }
-      .guide-mobile { display: inline; }
-    }
-
-    /* 印刷・A4プレビューでは非表示 */
-    body.a4-preview .guideText,
-    @media print {
-      .guideText { display: none !important; }
-    }
-
-    .meta {
+      flex: 1;                      /* 追加：中央〜右側に伸びる */
       font-size: 10.5pt;
       color: #333;
-      white-space: nowrap;
+      line-height: 1.5;
     }
 
-    /* ===== QR ===== */
+    /* PC（= pointer: fine 想定）の文言：全文表示 */
+    .guideText::before {
+      content: "ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、受付にご提示ください。※この画面をそのまま印刷しないでください。";
+    }
+
+    /* スマホ/タブレット（タッチ）では文言を差し替え：全文表示 */
+    @media (pointer: coarse) {
+      .guideText::before {
+        content: "ご来場の際は、この画面のQRコードを受付にご提示ください。";
+      }
+    }
+
+    /* 右端のメタ情報（従来どおり） */
+    .title .meta {
+      font-size: 10.5pt;
+      color: #333;
+      word-break: break-all;
+      white-space: nowrap;
+      margin-left: auto;            /* 追加：右端へ寄せる */
+    }
+
+    /* ===== QR：共通 ===== */
+    .qrArea { width: 100%; }
+
+    /* 通常画面：中央1つ */
     .qrArea--one {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .qrBox {
+      box-sizing: border-box;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -115,14 +128,17 @@
       padding: 12px;
     }
 
+    /* 印刷・A4プレビュー用：左上/右上に2つ */
     .qrArea--two {
-      display: none;
+      display: none; /* 通常は隠す */
       grid-template-columns: 1fr 1fr;
       gap: 10mm;
+      align-items: start;
       justify-items: center;
+      width: 100%;
     }
     .qrBox--two {
-      width: 80mm;
+      width: 80mm;      /* 2マス（左上/右上）に収まるよう固定 */
       padding: 5mm;
     }
 
@@ -132,25 +148,32 @@
       display: block;
     }
 
+    /* フッター（個人情報は一切出さない） */
     .footer {
       border-top: 1px solid #e5e5e5;
       padding-top: 16px;
       font-size: 10pt;
+      color: #444;
       display: flex;
       justify-content: space-between;
+      gap: 12px;
     }
 
-    /* ===== A4プレビュー ===== */
+    /* ===== クリック時だけ「画面上でA4」プレビューに切替 ===== */
     body.a4-preview .page {
       width: 210mm;
       height: 297mm;
       padding: 15mm;
       gap: 10mm;
     }
+    body.a4-preview .title { padding-bottom: 6mm; }
+    body.a4-preview .footer { padding-top: 6mm; }
+
+    /* A4プレビュー時：中央1つを隠し、2つ表示 */
     body.a4-preview .qrArea--one { display: none; }
     body.a4-preview .qrArea--two { display: grid; }
 
-    /* 十字罫線（薄い実線） */
+    /* =====★ A4プレビュー中（画面）に十字罫線（薄い実線・背景不使用） ===== */
     body.a4-preview .page::before,
     body.a4-preview .page::after {
       content: "";
@@ -162,29 +185,39 @@
       top: 0; bottom: 0;
       left: 50%;
       transform: translateX(-0.15mm);
-      border-left: 0.3mm solid rgba(0,0,0,.2);
+      border-left: 0.3mm solid rgba(0,0,0,.20);
     }
     body.a4-preview .page::after {
       left: 0; right: 0;
       top: 50%;
       transform: translateY(-0.15mm);
-      border-top: 0.3mm solid rgba(0,0,0,.2);
+      border-top: 0.3mm solid rgba(0,0,0,.20);
     }
 
-    /* ===== 印刷 ===== */
+    /* ===== 印刷（A4） ===== */
     @page { size: A4; margin: 0; }
+
     @media print {
+      .no-print { display: none !important; }
+
       .page {
         width: 210mm;
         height: 297mm;
         margin: 0;
-        padding: 15mm;
-        box-shadow: none;
         border-radius: 0;
+        box-shadow: none;
+        padding: 15mm;
+        gap: 10mm;
+        position: relative;
       }
+
+      body { background: #fff; }
+
+      /* 印刷時：中央1つを隠し、2つ表示 */
       .qrArea--one { display: none !important; }
       .qrArea--two { display: grid !important; }
 
+      /* =====★ 印刷時の十字罫線（薄い実線・背景不使用） ===== */
       .page::before,
       .page::after {
         content: "";
@@ -206,8 +239,13 @@
       }
     }
 
-    /* ===== スマホ／タブレット：QRを80%・中央 ===== */
+    /* =========================================================
+       ✅ 追加要件：スマホ/タブレット表示時
+       - QRを画面の約80%で表示
+       - 上下左右中央に表示
+       ========================================================= */
     @media (pointer: coarse) {
+      /* スマホは「印刷用ページ」ではなく「閲覧用」なのでフル画面寄せ */
       .page {
         width: 100vw;
         min-height: 100vh;
@@ -217,53 +255,67 @@
         padding: 12px;
         gap: 12px;
       }
+
+      /* タイトル・フッターを少し詰める（残す） */
+      .title { padding-bottom: 10px; }
+      .footer { padding-top: 10px; }
+
+      /* タイトル・フッター以外の領域を使って中央寄せ */
       .qrArea--one {
         flex: 1;
+        min-height: 0;
         display: flex;
-        justify-content: center;
         align-items: center;
+        justify-content: center;
       }
+
+      /* QRを“画面短辺の80%相当”に（縦横中央） */
       .qrBox--one {
-        width: 80vmin;
+        width: 80vmin;     /* 画面の短辺基準で80% */
         max-width: 80vmin;
-        padding: 0;
+        padding: 0;        /* 余白は最小にして大きく */
+      }
+
+      /* ✅ 追加：スマホでは長文が詰まりすぎないよう少しだけ調整（任意） */
+      .guideText {
+        font-size: 10pt;
       }
     }
   </style>
 </head>
 
 <body>
-  <div class="toolbar">
+  <!-- 上部（画面表示のみ：個人情報はここだけ） -->
+  <div class="toolbar no-print">
     <button id="printBtn">A4で印刷</button>
     <div class="toolbarLine" id="toolbarLine"></div>
   </div>
 
-  <section class="page">
+  <section class="page" id="page">
     <div class="title">
       <h1>QRコード</h1>
 
-      <div class="guideText">
-        <span class="guide-pc">
-          ご来場の際は、画面左上の［A4で印刷］からQRコードを印刷し、
-          受付にご提示ください。※この画面をそのまま印刷しないでください。
-        </span>
-        <span class="guide-mobile">
-          ご来場の際は、この画面のQRコードを受付にご提示ください。
-        </span>
-      </div>
+      <!-- ✅追加：見出し右の案内文（PC/スマホで自動切替） -->
+      <div class="guideText" id="guideText"></div>
 
       <div class="meta" id="metaLine"></div>
     </div>
 
-    <div class="qrArea--one">
-      <div class="qrBox--one" id="qrBoxOne">
+    <!-- 通常画面：中央1つ -->
+    <div class="qrArea qrArea--one">
+      <div class="qrBox qrBox--one" id="qrBoxOne">
         <canvas id="qrCanvasOne"></canvas>
       </div>
     </div>
 
-    <div class="qrArea--two">
-      <div class="qrBox--two" id="qrBoxLeft"><canvas id="qrCanvasLeft"></canvas></div>
-      <div class="qrBox--two" id="qrBoxRight"><canvas id="qrCanvasRight"></canvas></div>
+    <!-- 印刷/A4プレビュー：左上・右上に同じQRを2つ -->
+    <div class="qrArea qrArea--two" id="qrAreaTwo">
+      <div class="qrBox qrBox--two" id="qrBoxLeft">
+        <canvas id="qrCanvasLeft"></canvas>
+      </div>
+      <div class="qrBox qrBox--two" id="qrBoxRight">
+        <canvas id="qrCanvasRight"></canvas>
+      </div>
     </div>
 
     <div class="footer">
@@ -272,53 +324,103 @@
     </div>
   </section>
 
+  <!-- ✅ QRコード生成ライブラリ（scriptタグ正） -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.4.4/build/qrcode.min.js"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(location.search);
+
+      // 個人情報（上部のみ表示）
+      const k = params.get("k") ?? "";
+      const b = params.get("b") ?? "";
+      const y = params.get("y") ?? "";
+      const n = params.get("n") ?? "";
+
+      // QRの中身（uのみ）
       const payload = params.get("u") ?? "";
 
-      document.getElementById("metaLine").textContent = "ecc=M / responsive";
+      const v = (s) => (s && s.trim()) ? s : "（未指定）";
+
+      // 上部ツールバー中央：個人情報を表示（画面のみ）
+      const toolbarLine = document.getElementById("toolbarLine");
+      if (toolbarLine) {
+        toolbarLine.textContent =
+          `会社名：${v(k)}／部署：${v(b)}／役職：${v(y)}／お名前：${v(n)} 様`;
+      }
+
+      // メタ・フッター（個人情報なし）
+      const ecc = "M";
+      document.getElementById("metaLine").textContent = `ecc=${ecc} / responsive`;
       document.getElementById("footerInfo").textContent = new Date().toLocaleString();
 
-      function render(canvasId, boxId) {
+      // ===== QRをそれぞれのボックス幅に合わせて描画 =====
+      function computeQrWidthPx(box) {
+        const w = Math.floor(box.getBoundingClientRect().width);
+        const clamped = Math.max(160, Math.min(w, 1100));
+        return clamped - (clamped % 2);
+      }
+
+      function renderTo(canvasId, boxId) {
         const canvas = document.getElementById(canvasId);
         const box = document.getElementById(boxId);
         if (!canvas || !box) return;
 
-        const w = box.getBoundingClientRect().width;
-        if (!w || w <= 0) {
-          requestAnimationFrame(() => render(canvasId, boxId));
+        const width = computeQrWidthPx(box);
+
+        // ✅ Android対策：レイアウト確定前（width=0等）なら次フレームで再試行
+        if (!width || width <= 0) {
+          requestAnimationFrame(() => renderTo(canvasId, boxId));
           return;
         }
 
-        QRCode.toCanvas(canvas, payload || "（u未指定）", {
-          width: Math.floor(w),
-          margin: 2,
-          errorCorrectionLevel: "M"
+        QRCode.toCanvas(
+          canvas,
+          payload || "（u が指定されていません）",
+          { width, margin: 2, errorCorrectionLevel: ecc },
+          (err) => { if (err) console.error(err); }
+        );
+      }
+
+      function renderAllQrs() {
+        renderTo("qrCanvasOne", "qrBoxOne");
+        renderTo("qrCanvasLeft", "qrBoxLeft");
+        renderTo("qrCanvasRight", "qrBoxRight");
+      }
+
+      // ✅ 初回描画：2フレーム待ち（Androidの幅0事故を避ける）
+      requestAnimationFrame(() => requestAnimationFrame(renderAllQrs));
+
+      // リサイズは間引き
+      let t = 0;
+      function scheduleRender() {
+        clearTimeout(t);
+        t = setTimeout(renderAllQrs, 120);
+      }
+      window.addEventListener("resize", scheduleRender);
+
+      // ===== 「A4で印刷」クリック時だけA4プレビュー → 印刷 → 戻す =====
+      const printBtn = document.getElementById("printBtn");
+
+      function enableA4Preview() {
+        document.body.classList.add("a4-preview");
+        renderAllQrs();
+      }
+      function disableA4Preview() {
+        document.body.classList.remove("a4-preview");
+        renderAllQrs();
+      }
+
+      window.addEventListener("afterprint", disableA4Preview);
+
+      if (printBtn) {
+        printBtn.addEventListener("click", () => {
+          enableA4Preview();
+          window.print();
         });
       }
 
-      function renderAll() {
-        render("qrCanvasOne", "qrBoxOne");
-        render("qrCanvasLeft", "qrBoxLeft");
-        render("qrCanvasRight", "qrBoxRight");
-      }
-
-      requestAnimationFrame(() => requestAnimationFrame(renderAll));
-      window.addEventListener("resize", () => setTimeout(renderAll, 120));
-
-      document.getElementById("printBtn").onclick = () => {
-        document.body.classList.add("a4-preview");
-        renderAll();
-        window.print();
-      };
-      window.addEventListener("afterprint", () => {
-        document.body.classList.remove("a4-preview");
-        renderAll();
-      });
-
+      // URL引数を非表示（履歴を汚さない）
       if (location.search) {
         history.replaceState(null, document.title, location.pathname);
       }
