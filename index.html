@@ -131,23 +131,23 @@
       pointer-events: none;
       z-index: 5;
     }
-    /* 縦罫線 */
+    /* 縦罫線（破線・薄め） */
     body.a4-preview .page::before {
       top: 0; bottom: 0;
       left: 50%;
-      border-left: 0.3mm solid rgba(0,0,0,.45);
+      border-left: 0.3mm dashed rgba(0,0,0,.18); /* ← 実線→破線、色を薄く */
       transform: translateX(-0.15mm);
     }
-    /* 横罫線 */
+    /* 横罫線（破線・薄め） */
     body.a4-preview .page::after {
       left: 0; right: 0;
       top: 50%;
-      border-top: 0.3mm solid rgba(0,0,0,.45);
+      border-top: 0.3mm dashed rgba(0,0,0,.18);  /* ← 実線→破線、色を薄く */
       transform: translateY(-0.15mm);
     }
 
     /* ===== 印刷（A4） ===== */
-    @page { size: A4; margin: 0; } /* 印刷時の用紙設定 [1](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Media_queries/Printing) */
+    @page { size: A4; margin: 0; } /* 印刷時の用紙設定 */
 
     @media print {
       /* 印刷時：個人情報を含むUIは非表示 */
@@ -178,18 +178,18 @@
         pointer-events: none;
         z-index: 9999; /* 文字やQRの上に線を出したい場合 */
       }
-      /* 縦罫線：ページの真ん中 */
+      /* 縦罫線：ページの真ん中（破線・薄め） */
       .page::before {
         top: 0; bottom: 0;
         left: 50%;
-        border-left: 0.3mm solid #000; /* 罫線の太さ・色（好みで調整） */
+        border-left: 0.3mm dashed rgba(0,0,0,.22); /* ← 実線→破線、色を薄く */
         transform: translateX(-0.15mm);
       }
-      /* 横罫線：ページの真ん中 */
+      /* 横罫線：ページの真ん中（破線・薄め） */
       .page::after {
         left: 0; right: 0;
         top: 50%;
-        border-top: 0.3mm solid #000;
+        border-top: 0.3mm dashed rgba(0,0,0,.22);  /* ← 実線→破線、色を薄く */
         transform: translateY(-0.15mm);
       }
     }
@@ -260,7 +260,7 @@
 
     function renderQr() {
       const width = computeQrWidthPx();
-      // QRCode.toCanvas は width オプションで描画サイズを指定できる [3](https://www.npmjs.com/package/qrcode/v/1.4.4)
+      // QRCode.toCanvas は width オプションで描画サイズを指定できる
       QRCode.toCanvas(
         canvas,
         payload || "（u が指定されていません）",
@@ -292,7 +292,7 @@
       renderQr();
     }
 
-    // 印刷/プレビュー終了後に元へ戻す（afterprint） [2](https://developer.mozilla.org/en-US/docs/Web/API/Window/afterprint_event)
+    // 印刷/プレビュー終了後に元へ戻す（afterprint）
     window.addEventListener("afterprint", () => {
       disableA4Preview();
     });
